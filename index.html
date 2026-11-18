@@ -7,7 +7,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Atelier Git : apprendre Git en tapant de vraies commandes. Réalisé par Titan_gp1.">
 <meta name="author" content="Titan_gp1">
-<script>(function(){try{var t=localStorage.getItem('atelier-git-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}})();</script>
+<script>(function(){try{var t=localStorage.getItem('atelier-git-theme');if(t)document.documentElement.dataset.theme=t;var f=localStorage.getItem('atelier-git-fx');if(f==='lite'||f==='max')document.documentElement.classList.add('fx-'+f)}catch(e){}})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
@@ -27,6 +27,7 @@
   --lane0:#e8492b; --lane1:#0e9f8f; --lane2:#2b6fd6; --lane3:#c98a00; --lane4:#d14b84;
   --node-ring:#ffffff;
   --frost:rgba(255,255,255,.58); --scrim:rgba(20,32,44,.30); --menu-surface:#f3f6f9;
+  --solid:rgba(246,248,251,.92); --t-solid:rgba(12,18,26,.96); --glass-blur:16px;
   --t-bg:rgba(12,18,26,.80); --t-ink:#dfe7ee; --t-dim:#8a9aa9; --t-ok:#7ee0a1; --t-err:#ff8b80; --t-hash:#f0c35a; --t-head:#6fdbe6; --t-hunk:#8cc2ff; --t-tip:#b9c6d2;
   --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
   --f-body:"Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -44,7 +45,7 @@
   --chip:rgba(255,255,255,.07); --line:rgba(255,255,255,.09);
   --b1:#b8401c; --b2:#0d7a6f; --b3:#8a6410; --b4:#2546a8; --blob-o:.55; --deco-o:.42;
   --lane0:#ff6a45; --lane1:#33d0bd; --lane2:#7fb0ff; --lane3:#f0b445; --lane4:#f07fb0;
-  --node-ring:#0a0e13; --frost:rgba(8,12,17,.62); --scrim:rgba(0,0,0,.55); --menu-surface:#131920; color-scheme:dark }
+  --node-ring:#0a0e13; --frost:rgba(8,12,17,.62); --scrim:rgba(0,0,0,.55); --menu-surface:#131920; --solid:rgba(17,22,29,.92); color-scheme:dark }
 }
 :root[data-theme="dark"]{
   --bg:#0a0e13; --ink:#ecf2f7; --ink-2:#a3b2c0; --ink-3:#71808e;
@@ -57,7 +58,7 @@
   --chip:rgba(255,255,255,.07); --line:rgba(255,255,255,.09);
   --b1:#b8401c; --b2:#0d7a6f; --b3:#8a6410; --b4:#2546a8; --blob-o:.55; --deco-o:.42;
   --lane0:#ff6a45; --lane1:#33d0bd; --lane2:#7fb0ff; --lane3:#f0b445; --lane4:#f07fb0;
-  --node-ring:#0a0e13; --frost:rgba(8,12,17,.62); --scrim:rgba(0,0,0,.55); --menu-surface:#131920; color-scheme:dark }
+  --node-ring:#0a0e13; --frost:rgba(8,12,17,.62); --scrim:rgba(0,0,0,.55); --menu-surface:#131920; --solid:rgba(17,22,29,.92); color-scheme:dark }
 
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -82,7 +83,7 @@ code,kbd{font-family:var(--f-mono);font-size:.86em}
 /* ---------- Verre liquide ---------- */
 .glass{position:relative;isolation:isolate;border-radius:var(--r-xl);
   background:linear-gradient(155deg,var(--glass-hi),var(--glass) 38%,var(--glass-lo));
-  -webkit-backdrop-filter:blur(26px) saturate(185%);backdrop-filter:blur(26px) saturate(185%);
+  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(170%);backdrop-filter:blur(var(--glass-blur)) saturate(170%);
   border:1px solid var(--rim-lo);
   box-shadow:inset 0 1px 0 var(--spec),inset 0 -1px 1px var(--rim-lo),inset 0 0 0 1px var(--rim-in),0 1px 2px var(--shadow-sm),0 22px 60px -18px var(--shadow)}
 .glass::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
@@ -94,7 +95,7 @@ code,kbd{font-family:var(--f-mono);font-size:.86em}
 .gbtn{position:relative;display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;cursor:pointer;font-weight:600;font-size:14px;
   border:1px solid var(--rim-lo);color:var(--ink);
   background:linear-gradient(160deg,var(--glass-hi),var(--glass-lo));
-  -webkit-backdrop-filter:blur(16px) saturate(180%);backdrop-filter:blur(16px) saturate(180%);
+  -webkit-backdrop-filter:blur(8px) saturate(160%);backdrop-filter:blur(8px) saturate(160%);
   box-shadow:inset 0 1px 0 var(--spec),0 4px 14px -6px var(--shadow);transition:transform .18s cubic-bezier(.3,1.6,.5,1),box-shadow .2s,background .2s}
 .gbtn:hover{transform:translateY(-1px);box-shadow:inset 0 1px 0 var(--spec),0 10px 24px -10px var(--shadow)}
 .gbtn:active{transform:scale(.96)}
@@ -196,7 +197,8 @@ code,kbd{font-family:var(--f-mono);font-size:.86em}
 .node:hover .dot,.node:focus-visible .dot{stroke:var(--accent)}
 .node .dot{stroke:var(--node-ring);stroke-width:3;transition:stroke .15s}
 .node .dot.merge{stroke-width:4}
-.node .halo{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-dasharray:4 3;animation:spin 8s linear infinite;transform-origin:center}
+/* Anneau immobile : une rotation infinie forçait le recalcul du verre du graphe à chaque image. */
+.node .halo{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-dasharray:4 3}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.node .halo{animation:none}}
 .node .hash{font-family:var(--f-mono);font-size:10.5px;fill:var(--ink-3);text-anchor:middle}
@@ -226,7 +228,7 @@ button.file:hover .fn{color:var(--accent);text-decoration:underline;text-underli
 .file .fn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
 .file.gone .fn{text-decoration:line-through;color:var(--ink-3)}
 .badge{flex:none;width:20px;height:20px;border-radius:6px;display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff;font-family:var(--f-body)}
-.badge.U{background:var(--info)} .badge.I{background:var(--ink-3)} .badge.M{background:var(--warn)} .badge.D{background:var(--bad)} .badge.A{background:var(--ok)} .badge.C{background:var(--bad);animation:blink 1.2s ease-in-out infinite} .badge.ok{background:transparent;color:var(--ink-3);border:1px solid var(--line)}
+.badge.U{background:var(--info)} .badge.I{background:var(--ink-3)} .badge.M{background:var(--warn)} .badge.D{background:var(--bad)} .badge.A{background:var(--ok)} .badge.C{background:var(--bad);animation:blink 1.2s ease-in-out 3} .badge.ok{background:transparent;color:var(--ink-3);border:1px solid var(--line)}
 @keyframes blink{50%{opacity:.45}}
 .zone .none{font-size:12.5px;color:var(--ink-3);font-style:italic}
 .arrow{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;font-family:var(--f-mono);font-size:11px;color:var(--ink-2);min-width:58px}
@@ -254,7 +256,25 @@ button.file:hover .fn{color:var(--accent);text-decoration:underline;text-underli
 .c-sys{color:var(--t-dim);font-style:italic}
 .term-in{display:flex;align-items:center;gap:8px;padding:10px 16px 14px;font-family:var(--f-mono);font-size:13px}
 .prompt{color:var(--t-ok);white-space:nowrap;flex:none}
-#cmd{flex:1;min-width:0;background:transparent;border:0;outline:none;color:#fff;font:inherit;caret-color:var(--t-hash)}
+/* Frappe fluide : le champ réel est transparent, un miroir dessine les lettres et un curseur qui glisse. */
+.cmd-wrap{position:relative;flex:1;min-width:0;height:1.55em}
+#cmd{position:absolute;inset:0;width:100%;height:100%;padding:0;margin:0;background:transparent;border:0;outline:none;color:transparent;font:inherit;line-height:inherit;caret-color:transparent}
+#cmd::placeholder{color:var(--t-dim)}
+#cmd::selection{background:rgba(240,195,90,.35);color:transparent}
+.cmd-mirror{position:absolute;inset:0;overflow:hidden;white-space:pre;pointer-events:none;color:#fff;line-height:inherit}
+.cmd-mirror .track{display:inline-block;white-space:pre;will-change:transform}
+.cmd-mirror .ch{display:inline-block;white-space:pre}
+.cmd-mirror .ch.in{animation:chIn .16s cubic-bezier(.2,.8,.2,1) both}
+@keyframes chIn{from{opacity:0;transform:translateY(.3em) scale(.85);filter:blur(1.5px)}}
+.caret{position:absolute;left:0;top:.12em;width:2px;height:1.3em;border-radius:1px;background:var(--t-hash);opacity:0;pointer-events:none;
+  transition:transform .1s cubic-bezier(.2,.8,.2,1),opacity .15s;will-change:transform}
+.cmd-wrap.focused .caret{opacity:1}
+.cmd-wrap.focused .caret.idle{animation:caretBlink 1.06s steps(1) infinite}
+.caret.hidden{opacity:0!important}
+@keyframes caretBlink{50%{opacity:0}}
+.ln.in{animation:lnIn .22s cubic-bezier(.2,.8,.2,1) both}
+@keyframes lnIn{from{opacity:0;transform:translateY(4px)}}
+@media (prefers-reduced-motion:reduce){.cmd-mirror .ch.in,.ln.in{animation:none}.caret{transition:none}}
 
 /* ---------- Fenêtres ---------- */
 .overlay{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px));background:var(--scrim);animation:fade .2s ease-out}
@@ -312,6 +332,15 @@ body.modal-open{overflow:hidden}
 }
 @media (max-width:480px){ .term-out{height:280px} .xp small{display:none} }
 @media (hover:none){ .kbd{display:none} }
+/* ---------- Niveaux d'effets ---------- */
+html.fx-max{--glass-blur:24px}
+html.fx-lite .glass,html.fx-lite .gbtn,html.fx-lite .toast{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html.fx-lite .glass{background:var(--solid)}
+html.fx-lite .term{background:var(--t-solid)}
+html.fx-lite .toast{background:var(--menu-surface)}
+.fxbtn .fxdot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+html.fx-lite .fxbtn .fxdot{background:var(--ink-3)}
+html.fx-max .fxbtn .fxdot{background:var(--accent)}
 </style>
 </head>
 <body>
@@ -336,11 +365,12 @@ body.modal-open{overflow:hidden}
       <div class="brand-mark" aria-hidden="true">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><circle cx="6" cy="18" r="2.6"/><circle cx="6" cy="6" r="2.6"/><circle cx="18" cy="9" r="2.6"/><path d="M6 8.6v6.8M18 11.6c0 4-6 3-11 5"/></svg>
       </div>
-      <div><b>Atelier Git <span class="ver" title="Version de l'application">v1.2.0</span></b><small>Apprendre Git en tapant de vraies commandes</small></div>
+      <div><b>Atelier Git <span class="ver" title="Version de l'application">v1.3.0</span></b><small>Apprendre Git en tapant de vraies commandes</small></div>
     </div>
     <div class="top-actions">
       <div class="xp" title="Points gagnés en terminant les leçons"><span id="xp">0</span><small>XP</small></div>
       <button class="gbtn" id="btnCheat" type="button">Aide-mémoire</button>
+      <button class="gbtn fxbtn" id="btnFx" type="button" title="Régler les effets visuels : le verre demande beaucoup de calcul"><span class="fxdot" aria-hidden="true"></span><span id="fxLabel">Effets : équilibrés</span></button>
       <button class="gbtn icon" id="btnTheme" type="button" aria-label="Changer de thème" title="Changer de thème">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor"/></svg>
       </button>
@@ -365,12 +395,12 @@ body.modal-open{overflow:hidden}
     <div class="glass term" id="term" data-refract="10">
       <div class="term-head"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span>terminal — ~/projet</span><span class="kbd" title="Raccourci pour revenir au terminal">/ pour écrire</span><button class="tbtn" id="btnClear" type="button">Effacer</button></div>
       <div class="term-out" id="out" role="log" aria-live="polite"></div>
-      <form class="term-in" id="form" autocomplete="off"><label for="cmd" class="prompt" id="prompt">$</label><input id="cmd" name="cmd" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="tapez une commande…"></form>
+      <form class="term-in" id="form" autocomplete="off"><label for="cmd" class="prompt" id="prompt">$</label><span class="cmd-wrap"><input id="cmd" name="cmd" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="tapez une commande…"></span></form>
     </div>
   </section>
 
   <footer class="credit">
-    <span>Atelier Git <span class="ver">v1.2.0</span></span>
+    <span>Atelier Git <span class="ver">v1.3.0</span></span>
     <span aria-hidden="true">·</span>
     <span>Réalisé par <b>Titan_gp1</b></span>
     <span aria-hidden="true">·</span>
@@ -405,7 +435,7 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const has=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
 const SERVER_URL='https://github.com/equipe/site.git';
-const APP_VERSION='1.2.0';
+const APP_VERSION='1.3.0';
 
 /* =========================================================
    Moteur Git simulé
@@ -507,9 +537,11 @@ function closest(w,list){let best=null,bd=3;for(const x of list){const d=lev(w,x
 
 /* ----- Sortie terminal ----- */
 const outEl=$('#out');
+let lnBatch=0;
 function o(x,cls){if(SILENT)return;const d=document.createElement('div');d.className='ln'+(cls?' '+cls:'');
+  if(!lnBatch++)queueMicrotask(()=>{lnBatch=0});if(lnBatch<=40){d.classList.add('in');if(lnBatch>1)d.style.animationDelay=Math.min(lnBatch-1,30)*10+'ms'}
   if(Array.isArray(x)){for(const [t,c] of x){const s=document.createElement('span');if(c)s.className=c;s.textContent=t;d.appendChild(s)}}else d.textContent=x;
-  outEl.appendChild(d)}
+  outEl.appendChild(d);if(outEl.childElementCount>700)for(let i=0;i<150&&outEl.firstChild;i++)outEl.firstChild.remove()}
 function err(x){o(x,'c-err');return false}
 function tip(x){o(x,'c-tip')}
 
@@ -1253,12 +1285,40 @@ function renderGraph(){const el=$('#graph'),meta=$('#graphMeta');const r=S.repo;
   el.scrollLeft=el.scrollWidth;lastGraphIds=new Set(list.map(c=>c.id));
   meta.textContent=`${list.length} commit${list.length>1?'s':''} · ${Object.keys(r.branches).length} branche${Object.keys(r.branches).length>1?'s':''}`}
 function renderAll(){renderPrompt();renderZones();renderGraph()}
-function scrollOut(){outEl.scrollTop=outEl.scrollHeight}
+function scrollOut(){outEl.scrollTo({top:outEl.scrollHeight,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}
 
 /* =========================================================
    Interactions
    ========================================================= */
 const cmd=$('#cmd'),hist=[];let hpos=0;
+/* ----- Frappe fluide : curseur qui glisse et lettres qui apparaissent en douceur ----- */
+const TypeFX=(()=>{const wrap=cmd.parentElement,mirror=document.createElement('div'),track=document.createElement('span'),caret=document.createElement('span');
+  mirror.className='cmd-mirror';mirror.setAttribute('aria-hidden','true');track.className='track';caret.className='caret';caret.setAttribute('aria-hidden','true');
+  mirror.appendChild(track);wrap.insertBefore(mirror,cmd);wrap.appendChild(caret);
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches,spans=[];let prev=[],idleT=0,raf=0;
+  function apply(stagger){const next=Array.from(cmd.value);let a=0;while(a<prev.length&&a<next.length&&prev[a]===next[a])a++;
+    let b=0;while(b<prev.length-a&&b<next.length-a&&prev[prev.length-1-b]===next[next.length-1-b])b++;
+    spans.splice(a,prev.length-b-a).forEach(x=>x.remove());
+    const frag=document.createDocumentFragment(),added=next.slice(a,next.length-b).map((c,i)=>{const x=document.createElement('span');x.className=reduce?'ch':'ch in';x.textContent=c;
+      if(stagger&&!reduce)x.style.animationDelay=Math.min(i*14,420)+'ms';frag.appendChild(x);return x});
+    track.insertBefore(frag,spans[a]||null);spans.splice(a,0,...added);prev=next}
+  function placeNow(){const v=cmd.value,s0=cmd.selectionStart??v.length,s1=cmd.selectionEnd??s0,idx=Array.from(v.slice(0,s0)).length;
+    let x=0;if(idx<spans.length)x=spans[idx].offsetLeft;else if(spans.length){const l=spans[spans.length-1];x=l.offsetLeft+l.offsetWidth}
+    const sl=cmd.scrollLeft;track.style.transform=`translateX(${-sl}px)`;caret.style.transform=`translateX(${x-sl}px)`;
+    caret.classList.toggle('hidden',s0!==s1);caret.classList.remove('idle');clearTimeout(idleT);idleT=setTimeout(()=>caret.classList.add('idle'),520)}
+  function place(){cancelAnimationFrame(raf);placeNow();raf=requestAnimationFrame(placeNow)}
+  function sync(stagger){apply(stagger);place()}
+  cmd.addEventListener('input',()=>sync(false));
+  ['keydown','keyup','click','select','scroll'].forEach(ev=>cmd.addEventListener(ev,place));
+  document.addEventListener('selectionchange',()=>{if(document.activeElement===cmd)place()});
+  cmd.addEventListener('focus',()=>{wrap.classList.add('focused');place()});cmd.addEventListener('blur',()=>wrap.classList.remove('focused'));
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(place);
+  /* Les valeurs posées par le code (historique, complétion, astuces) passent aussi par l'animation. */
+  const desc=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value');
+  Object.defineProperty(cmd,'value',{configurable:true,get(){return desc.get.call(this)},
+    set(v){const old=desc.get.call(this);desc.set.call(this,v);const grow=String(v).length-old.length;queueMicrotask(()=>sync(grow>3))}});
+  if(document.activeElement===cmd)wrap.classList.add('focused');
+  return {sync}})();
 $('#form').addEventListener('submit',e=>{e.preventDefault();const line=cmd.value;if(!line.trim())return;
   o([[$('#prompt').textContent+' ','c-prompt'],[line,'c-cmd']]);hist.push(line);hpos=hist.length;cmd.value='';
   run(line,false);renderAll();scrollOut()});
@@ -1380,15 +1440,20 @@ const Refract=(()=>{
       node('feColorMatrix',{in:'soft',type:'saturate',values:1.6}));
     ensureDefs().appendChild(f);e={id,key,node:f,refs:1};filters.set(key,e);return e}
   function release(s){if(!s.key)return;const e=filters.get(s.key);s.key=null;if(e&&--e.refs<=0){filters.delete(e.key);e.node.remove()}}
-  function rebuild(host){const s=state.get(host),w=Math.round(host.offsetWidth),h=Math.round(host.offsetHeight);if(!s||w<2||h<2)return;
+  let level='balanced';
+  const allowed=h=>level==='max'||(level==='balanced'&&h.classList.contains('topbar'));
+  function clearHost(h){const s=state.get(h);if(s){clearTimeout(s.t);release(s)}h.style.backdropFilter='';h.classList.remove('refracting')}
+  function rebuild(host){const s=state.get(host),w=Math.round(host.offsetWidth),h=Math.round(host.offsetHeight);if(!s||w<2||h<2)return;if(!allowed(host)){clearHost(host);return}
     const cs=getComputedStyle(host).borderTopLeftRadius,rv=parseFloat(cs)||0,radius=Math.min(cs.trim().endsWith('%')?rv/100*Math.min(w,h):rv,Math.min(w,h)/2);
     const frost=+host.dataset.refract||12,pw=innerWidth,ph=innerHeight,key=[w,h,radius,pw,ph,frost].join('|');if(key===s.key)return;
     release(s);const e=acquire(key,w,h,radius,pw,ph,frost);s.key=key;host.style.backdropFilter=`url(#${e.id})`;host.classList.add('refracting')}
-  function schedule(host){const s=state.get(host);if(!s)return;cancelAnimationFrame(s.raf);s.raf=requestAnimationFrame(()=>rebuild(host))}
+  /* La carte se recalcule après une pause, pas à chaque changement de taille (le calcul occupe le fil principal). */
+  function schedule(host,now){const s=state.get(host);if(!s)return;clearTimeout(s.t);cancelAnimationFrame(s.raf);const go=()=>{s.raf=requestAnimationFrame(()=>rebuild(host))};if(now||!s.key)go();else s.t=setTimeout(go,260)}
+  function setLevel(l){level=l;state.forEach((_,h)=>{if(allowed(h))schedule(h,true);else clearHost(h)})}
   function init(){if(!supported||reduce||!window.ResizeObserver)return;const ro=new ResizeObserver(es=>es.forEach(en=>schedule(en.target)));
-    document.querySelectorAll('[data-refract]').forEach(h=>{state.set(h,{key:null,raf:0});ro.observe(h);schedule(h)});
+    document.querySelectorAll('[data-refract]').forEach(h=>{state.set(h,{key:null,raf:0,t:0});ro.observe(h)});
     addEventListener('resize',()=>{clearTimeout(winT);winT=setTimeout(()=>state.forEach((_,h)=>schedule(h)),180)},{passive:true})}
-  return {init,count:()=>filters.size,active:()=>supported&&!reduce}})();
+  return {init,setLevel,count:()=>filters.size,active:()=>supported&&!reduce}})();
 
 /* ----- Démarrage ----- */
 document.querySelectorAll('.ver').forEach(v=>v.textContent='v'+APP_VERSION);
@@ -1396,7 +1461,26 @@ $('#legend').innerHTML=[['U','non suivi'],['M','modifié'],['A','ajouté'],['D',
 let start=0;try{const s=+localStorage.getItem('atelier-git-current');if(s>=0&&s<LESSONS.length)start=s}catch(e){}
 startLesson(start);
 Refract.init();
-window.__atelier={Refract};
+/* ----- Niveau des effets : légers, équilibrés, maximum ----- */
+const FX_LABEL={lite:'légers',balanced:'équilibrés',max:'maximum'},FX_NEXT={balanced:'max',max:'lite',lite:'balanced'};
+let fxLevel='balanced',fxAuto=true;
+try{const v=localStorage.getItem('atelier-git-fx');if(v&&FX_LABEL[v]){fxLevel=v;fxAuto=false}}catch(e){}
+function setFx(l,user){fxLevel=l;const h=document.documentElement;h.classList.toggle('fx-lite',l==='lite');h.classList.toggle('fx-max',l==='max');
+  $('#fxLabel').textContent='Effets : '+FX_LABEL[l];Refract.setLevel(l);
+  if(user){fxAuto=false;try{localStorage.setItem('atelier-git-fx',l)}catch(e){}}}
+$('#btnFx').onclick=()=>{setFx(FX_NEXT[fxLevel],true);
+  toast('Effets '+FX_LABEL[fxLevel],fxLevel==='lite'?'Panneaux opaques, sans flou : le plus rapide.':fxLevel==='max'?'Réfraction sur tous les panneaux : le plus beau, et le plus gourmand.':'Verre flouté, réfraction sur la barre du haut : bon équilibre.')};
+setFx(fxLevel,false);
+/* Si le défilement saccade (image médiane au-delà de 24 ms), on passe tout seul en effets légers. */
+(()=>{let samples=[],last=0,active=false,stopT=0;
+  const tick=t=>{if(!active)return;const d=t-last;last=t;if(d>0&&d<250)samples.push(d);
+    if(samples.length>=45){const med=[...samples].sort((a,b)=>a-b)[22];samples=[];
+      if(med>24&&fxAuto&&fxLevel!=='lite'){setFx('lite',false);fxAuto=false;try{localStorage.setItem('atelier-git-fx','lite')}catch(e){}
+        toast('Effets allégés','La page saccadait sur cet appareil : le verre passe en mode léger. Le bouton « Effets » permet de revenir en arrière.');active=false;return}}
+    requestAnimationFrame(tick)};
+  document.addEventListener('scroll',()=>{if(!fxAuto||fxLevel==='lite')return;if(!active){active=true;samples=[];last=performance.now();requestAnimationFrame(tick)}
+    clearTimeout(stopT);stopT=setTimeout(()=>{active=false},200)},{passive:true,capture:true})})();
+window.__atelier={Refract,TypeFX,setFx};
 })();
 </script>
 </body>

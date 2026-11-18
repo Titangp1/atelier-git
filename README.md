@@ -5,7 +5,7 @@ Réalisé par **Titan_gp1**.
 
 **Essayer en ligne : https://titangp1.github.io/atelier-git/**
 
-Version actuelle : **1.2.0**
+Version actuelle : **1.3.0**
 
 ## Ce que contient l'atelier
 
@@ -19,6 +19,9 @@ Version actuelle : **1.2.0**
 - Des points d'expérience, la progression gardée dans le navigateur, un thème clair et sombre.
 
 Raccourcis : `/` pour revenir au terminal, `↑` `↓` pour l'historique des commandes, `Tab` pour compléter.
+
+Le bouton **Effets** règle le verre liquide : *légers* (le plus rapide), *équilibrés* (par défaut) ou *maximum*.
+Si la page saccade, l'atelier passe tout seul en effets légers.
 
 ## Lancer en local
 
@@ -35,6 +38,16 @@ Aucune installation n'est nécessaire. Seules les polices viennent d'Internet ; 
 Les modes interactifs (`git add -p`, `git rebase -i`) ne sont pas simulés : l'atelier explique ce qu'ils font.
 
 ## Historique des versions
+
+### 1.3.0
+
+- Corrigé : la page ramait. L'anneau du commit actuel tournait sans arrêt et forçait le recalcul du verre à chaque image ;
+  la réfraction de tous les panneaux était recalculée à chaque défilement et après presque chaque commande.
+- Nouveau bouton « Effets » : légers, équilibrés (par défaut, réfraction sur la barre du haut seulement) ou maximum.
+  Passage automatique en effets légers si le défilement saccade.
+- Frappe fluide façon macOS : le curseur glisse d'une lettre à l'autre, chaque lettre apparaît en douceur,
+  et les commandes insérées s'écrivent lettre par lettre. Les réponses du terminal arrivent en fondu.
+- Le terminal garde au plus 700 lignes, pour rester rapide pendant les longues sessions.
 
 ### 1.2.0
 
