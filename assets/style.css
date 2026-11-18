@@ -540,7 +540,7 @@ html.fx-max .glare{display:block}
 .site-nav a{padding:8px 10px}
 .fxlvl{display:none}
 @media (min-width:1600px){.app .topbar .brand small{display:block}.app .fxlvl{display:inline}}
-@media (max-width:1000px){.site-nav{order:3;flex-basis:100%;justify-content:flex-start;margin:0 -6px}}
+@media (max-width:1270px){.site-nav{order:3;flex-basis:100%;justify-content:flex-start;margin:0 -6px}}
 @media (max-width:560px){.site-nav{flex-wrap:wrap;overflow:visible;justify-content:center;margin:0}.site-nav a{padding:6px 9px}}
 
 /* =========================================================
@@ -706,3 +706,16 @@ html.calm *,html.calm *::before,html.calm *::after{animation-duration:.001s!impo
 .gh-more[open] summary{margin-bottom:6px}
 .gh-errs{display:grid;gap:0}
 .gh p.note,.gh .note{border-left:3px solid var(--accent);padding-left:10px}
+
+/* ----- v2.3.1 : barre du haut sur une ligne ----- */
+@media (min-width:1271px){
+  .topbar{flex-wrap:nowrap;gap:10px}
+  .site-nav{gap:0}
+  .site-nav a{padding:8px 8px}
+  .top-actions{gap:6px}
+}
+/* ----- v2.3.1 : performances (rendu identique) -----
+   Le fond fixe flouté est peint une fois sur sa propre couche, au lieu d'être recalculé à chaque défilement.
+   Les sections hors de l'écran ne sont ni mises en page ni peintes tant qu'on n'y arrive pas. */
+.scene{contain:strict;transform:translateZ(0);backface-visibility:hidden}
+.page-main>section+section,.page-main>.glass+.glass{content-visibility:auto;contain-intrinsic-size:auto 480px}
