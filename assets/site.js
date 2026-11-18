@@ -103,7 +103,7 @@ const FX_LABEL={lite:'légers',balanced:'équilibrés',max:'maximum'},FX_NEXT={b
 let fxLevel='balanced',fxAuto=true;
 try{const v=localStorage.getItem('atelier-git-fx');if(v&&FX_LABEL[v]){fxLevel=v;fxAuto=false}}catch(e){}
 function setFx(l,user){fxLevel=l;const h=document.documentElement;h.classList.toggle('fx-lite',l==='lite');h.classList.toggle('fx-max',l==='max');
-  const lab=$('#fxLabel');if(lab)lab.textContent='Effets : '+FX_LABEL[l];Refract.setLevel(l);
+  const lab=$('#fxLabel');if(lab)lab.innerHTML='Effets<span class="fxlvl"> : '+FX_LABEL[l]+'</span>';Refract.setLevel(l);
   if(user){fxAuto=false;try{localStorage.setItem('atelier-git-fx',l)}catch(e){}}}
 {const b=$('#btnFx');if(b)b.onclick=()=>{setFx(FX_NEXT[fxLevel],true);
   toast('Effets '+FX_LABEL[fxLevel],fxLevel==='lite'?'Panneaux opaques, sans flou : le plus rapide.':fxLevel==='max'?'Flou plus fort et reflet qui suit la souris : le plus beau, et le plus gourmand.':'Verre flouté, réfraction sur la barre du haut : bon équilibre.')}}

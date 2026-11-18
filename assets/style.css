@@ -528,3 +528,14 @@ html.fx-max .glare{display:block}
 .board td.xp{font-weight:800;font-size:16px}
 @media (max-width:560px){.board .mini{display:none}.board .rk{width:52px}}
 @media (max-width:480px){.fxbtn #fxLabel{display:none}.fxbtn{width:40px;height:40px;padding:0;justify-content:center}}
+
+/* ---------- Barre du haut : jamais de chevauchement ----------
+   Logo, 5 liens et 4 boutons ne tiennent pas côte à côte dans 1 200 px : on n'affiche le superflu que s'il y a la place. */
+.topbar .brand small{display:none}
+.site-nav{flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none}
+.site-nav::-webkit-scrollbar{display:none}
+.site-nav a{padding:8px 10px}
+.fxlvl{display:none}
+@media (min-width:1600px){.app .topbar .brand small{display:block}.app .fxlvl{display:inline}}
+@media (max-width:1000px){.site-nav{order:3;flex-basis:100%;justify-content:flex-start;margin:0 -6px}}
+@media (max-width:560px){.site-nav{flex-wrap:wrap;overflow:visible;justify-content:center;margin:0}.site-nav a{padding:6px 9px}}
