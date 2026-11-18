@@ -5,7 +5,7 @@ Réalisé par **Titan_gp1**.
 
 **Essayer en ligne : https://titangp1.github.io/atelier-git/**
 
-Version actuelle : **1.3.0**
+Version actuelle : **1.4.0**
 
 ## Ce que contient l'atelier
 
@@ -23,6 +23,8 @@ Raccourcis : `/` pour revenir au terminal, `↑` `↓` pour l'historique des com
 Le bouton **Effets** règle le verre liquide : *légers* (le plus rapide), *équilibrés* (par défaut) ou *maximum*.
 Si la page saccade, l'atelier passe tout seul en effets légers.
 
+Le copier-coller est désactivé : les commandes s'apprennent en les tapant. Dans le terminal, `Ctrl+C` annule la ligne en cours, comme dans un vrai shell.
+
 ## Lancer en local
 
 Tout tient dans `index.html` : double-cliquez dessus, il s'ouvre dans votre navigateur.
@@ -38,6 +40,14 @@ Aucune installation n'est nécessaire. Seules les polices viennent d'Internet ; 
 Les modes interactifs (`git add -p`, `git rebase -i`) ne sont pas simulés : l'atelier explique ce qu'ils font.
 
 ## Historique des versions
+
+### 1.4.0
+
+- Écran de chargement au démarrage : un petit graphe de commits se dessine pendant que l'atelier se prépare.
+  Il disparaît en fondu dès que tout est prêt, et au plus tard après 7 secondes.
+- Copier-coller désactivé (raccourcis clavier, clic droit, glisser-déposer) avec un message qui invite à taper la commande.
+  Le texte de la page n'est plus sélectionnable ; les champs de saisie restent éditables.
+- `Ctrl+C` dans le terminal annule la ligne en cours et affiche `^C`, comme dans un vrai shell.
 
 ### 1.3.0
 

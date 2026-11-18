@@ -341,9 +341,62 @@ html.fx-lite .toast{background:var(--menu-surface)}
 .fxbtn .fxdot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
 html.fx-lite .fxbtn .fxdot{background:var(--ink-3)}
 html.fx-max .fxbtn .fxdot{background:var(--accent)}
+/* ---------- Pas de copier-coller : on apprend en tapant ---------- */
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea{-webkit-user-select:text;user-select:text}
+/* ---------- Écran de chargement ---------- */
+.splash{position:fixed;inset:0;z-index:100;display:grid;place-items:center;align-content:center;gap:26px;
+  padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px));
+  background:radial-gradient(55% 45% at 25% 20%,color-mix(in srgb,var(--b1) 50%,transparent),transparent 70%),
+    radial-gradient(50% 50% at 80% 85%,color-mix(in srgb,var(--b2) 45%,transparent),transparent 70%),
+    radial-gradient(40% 40% at 85% 15%,color-mix(in srgb,var(--b4) 35%,transparent),transparent 70%),var(--bg);
+  animation:splashFailsafe .5s ease 7s forwards}
+.splash-card{display:grid;justify-items:center;gap:10px;padding:34px 44px 28px;border-radius:32px;width:min(440px,100%);
+  background:linear-gradient(155deg,var(--glass-hi),var(--glass-lo));border:1px solid var(--rim-lo);
+  box-shadow:inset 0 1px 0 var(--spec),inset 0 -1px 1px var(--rim-lo),0 30px 80px -30px var(--shadow);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);
+  animation:splashIn .7s cubic-bezier(.2,1.2,.4,1) both}
+@keyframes splashIn{from{opacity:0;transform:translateY(14px) scale(.96)}}
+.splash-graph{width:220px;max-width:100%;height:auto;overflow:visible}
+.sg-line{fill:none;stroke-width:5;stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:100;animation:sgDraw .9s cubic-bezier(.3,0,.2,1) forwards}
+.sg-line.l0{stroke:var(--lane0)} .sg-line.l1{stroke:var(--lane1);animation-delay:.2s}
+.sg-dot{stroke:var(--node-ring);stroke-width:3;transform-box:fill-box;transform-origin:center;transform:scale(0);animation:sgPop .45s cubic-bezier(.3,1.6,.5,1) forwards}
+.sg-dot.l0{fill:var(--lane0)} .sg-dot.l1{fill:var(--lane1)}
+@keyframes sgDraw{to{stroke-dashoffset:0}}
+@keyframes sgPop{to{transform:scale(1)}}
+.splash-title{font-family:var(--f-display);font-weight:800;font-size:clamp(32px,7vw,44px);letter-spacing:-.03em;line-height:1;margin-top:8px;text-align:center}
+.splash-sub{color:var(--ink-2);font-size:14.5px;text-align:center;text-wrap:balance}
+.splash-bar{width:min(260px,70vw);height:4px;border-radius:99px;background:var(--chip);overflow:hidden;margin-top:14px}
+.splash-bar i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,var(--accent-2),var(--accent));transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.splash-status{font-family:var(--f-mono);font-size:12px;color:var(--ink-3);min-height:1.5em}
+.splash-foot{font-size:12.5px;color:var(--ink-3);text-align:center}
+.splash-foot b{color:var(--ink-2)}
+.splash.out{animation:splashOut .6s cubic-bezier(.4,0,.2,1) forwards;pointer-events:none}
+@keyframes splashOut{to{opacity:0;filter:blur(10px);transform:scale(1.03);visibility:hidden}}
+@keyframes splashFailsafe{to{opacity:0;visibility:hidden;pointer-events:none}}
+@media (prefers-reduced-motion:reduce){.splash-card,.sg-line,.sg-dot{animation:none}.sg-line{stroke-dashoffset:0}.sg-dot{transform:none}.splash.out{animation-duration:.2s}}
 </style>
 </head>
 <body>
+<div class="splash" id="splash" role="status" aria-live="polite" aria-label="Chargement de l'Atelier Git">
+  <div class="splash-card">
+    <svg class="splash-graph" viewBox="0 0 220 70" aria-hidden="true">
+      <path class="sg-line l0" d="M14 50 H206" pathLength="100"/>
+      <path class="sg-line l1" d="M54 50 C72 50 74 20 92 20 H150 C168 20 172 50 190 50" pathLength="100"/>
+      <circle class="sg-dot l0" cx="14" cy="50" r="7" style="animation-delay:.05s"/>
+      <circle class="sg-dot l0" cx="54" cy="50" r="7" style="animation-delay:.25s"/>
+      <circle class="sg-dot l1" cx="92" cy="20" r="7" style="animation-delay:.5s"/>
+      <circle class="sg-dot l0" cx="118" cy="50" r="7" style="animation-delay:.6s"/>
+      <circle class="sg-dot l1" cx="150" cy="20" r="7" style="animation-delay:.75s"/>
+      <circle class="sg-dot l0" cx="190" cy="50" r="9" style="animation-delay:1s"/>
+    </svg>
+    <div class="splash-title">Atelier Git</div>
+    <div class="splash-sub">Apprendre Git en tapant de vraies commandes</div>
+    <div class="splash-bar"><i id="splashBar"></i></div>
+    <div class="splash-status" id="splashStatus">$ git init</div>
+  </div>
+  <div class="splash-foot"><span class="ver">v1.4.0</span> · Réalisé par <b>Titan_gp1</b></div>
+</div>
 
 <div class="scene" aria-hidden="true">
   <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><span class="blob b4"></span>
@@ -365,7 +418,7 @@ html.fx-max .fxbtn .fxdot{background:var(--accent)}
       <div class="brand-mark" aria-hidden="true">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><circle cx="6" cy="18" r="2.6"/><circle cx="6" cy="6" r="2.6"/><circle cx="18" cy="9" r="2.6"/><path d="M6 8.6v6.8M18 11.6c0 4-6 3-11 5"/></svg>
       </div>
-      <div><b>Atelier Git <span class="ver" title="Version de l'application">v1.3.0</span></b><small>Apprendre Git en tapant de vraies commandes</small></div>
+      <div><b>Atelier Git <span class="ver" title="Version de l'application">v1.4.0</span></b><small>Apprendre Git en tapant de vraies commandes</small></div>
     </div>
     <div class="top-actions">
       <div class="xp" title="Points gagnés en terminant les leçons"><span id="xp">0</span><small>XP</small></div>
@@ -400,7 +453,7 @@ html.fx-max .fxbtn .fxdot{background:var(--accent)}
   </section>
 
   <footer class="credit">
-    <span>Atelier Git <span class="ver">v1.3.0</span></span>
+    <span>Atelier Git <span class="ver">v1.4.0</span></span>
     <span aria-hidden="true">·</span>
     <span>Réalisé par <b>Titan_gp1</b></span>
     <span aria-hidden="true">·</span>
@@ -435,7 +488,7 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const has=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
 const SERVER_URL='https://github.com/equipe/site.git';
-const APP_VERSION='1.3.0';
+const APP_VERSION='1.4.0';
 
 /* =========================================================
    Moteur Git simulé
@@ -1480,6 +1533,29 @@ setFx(fxLevel,false);
     requestAnimationFrame(tick)};
   document.addEventListener('scroll',()=>{if(!fxAuto||fxLevel==='lite')return;if(!active){active=true;samples=[];last=performance.now();requestAnimationFrame(tick)}
     clearTimeout(stopT);stopT=setTimeout(()=>{active=false},200)},{passive:true,capture:true})})();
+/* ----- Pas de copier-coller : les commandes s'apprennent en les tapant ----- */
+(()=>{let lastT=-Infinity;const warn=()=>{const n=performance.now();if(n-lastT<2500)return;lastT=n;
+    toast('Copier-coller désactivé','Tapez la commande vous-même : c\'est en l\'écrivant qu\'on la retient.')};
+  ['copy','cut','paste','drop'].forEach(ev=>document.addEventListener(ev,e=>{e.preventDefault();warn()},true));
+  document.addEventListener('dragstart',e=>e.preventDefault(),true);
+  document.addEventListener('keydown',e=>{const k=(e.key||'').toLowerCase(),mod=(e.ctrlKey||e.metaKey)&&!e.altKey;
+    /* Ctrl+C dans le terminal : annule la ligne, comme dans un vrai shell. */
+    if(e.target===cmd&&e.ctrlKey&&!e.metaKey&&k==='c'&&cmd.selectionStart===cmd.selectionEnd){e.preventDefault();
+      o([[$('#prompt').textContent+' ','c-prompt'],[cmd.value,'c-cmd'],['^C','c-dim']]);cmd.value='';scrollOut();return}
+    if(mod&&(k==='c'||k==='v'||k==='x'||k==='insert')){e.preventDefault();warn();return}
+    if(e.shiftKey&&k==='insert'){e.preventDefault();warn()}},true)})();
+
+/* ----- Écran de chargement ----- */
+(()=>{const sp=$('#splash');if(!sp)return;const bar=$('#splashBar'),st=$('#splashStatus'),t0=performance.now(),reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const step=(p,txt)=>{bar.style.width=p+'%';if(txt)st.textContent=txt};
+  setTimeout(()=>step(30,'$ git clone atelier-git'),60);
+  const fonts=document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve();
+  const loaded=document.readyState==='complete'?Promise.resolve():new Promise(r=>addEventListener('load',r,{once:true}));
+  fonts.then(()=>setTimeout(()=>step(65,'Chargement des 11 leçons…'),300));
+  Promise.race([Promise.all([fonts,loaded]),new Promise(r=>setTimeout(r,3500))]).then(()=>{
+    const wait=Math.max(0,(reduce?300:1500)-(performance.now()-t0));
+    setTimeout(()=>step(100,'Prêt.'),Math.max(0,wait-450));
+    setTimeout(()=>{sp.classList.add('out');setTimeout(()=>{sp.remove();if(matchMedia('(hover: hover)').matches&&!document.querySelector('.overlay:not([hidden])'))cmd.focus({preventScroll:true})},650)},wait)})})();
 window.__atelier={Refract,TypeFX,setFx};
 })();
 </script>
