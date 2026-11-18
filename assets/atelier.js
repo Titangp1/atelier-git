@@ -872,9 +872,9 @@ function seedServer(){const t1={'README.md':'# Site de l\'équipe'};const a=mkCo
 let cur=0,taskIdx=0,since=0;const shown=new Set();
 let chHint=false,chDone=false,chStart=0,chTimer=0,sideTab='lecons',lastGoals=[];
 let P={done:{},xp:0,ch:{}};
-try{const raw=localStorage.getItem('atelier-git-progress');if(raw)P=Object.assign(P,JSON.parse(raw))}catch(e){}
+try{const raw=sessionStorage.getItem('atelier-git-progress');if(raw)P=Object.assign(P,JSON.parse(raw))}catch(e){}
 P.ch=P.ch||{};
-function saveP(){try{localStorage.setItem('atelier-git-progress',JSON.stringify(P))}catch(e){}}
+function saveP(){try{sessionStorage.setItem('atelier-git-progress',JSON.stringify(P))}catch(e){}}
 function startLesson(i){cur=i;const L=LESSONS[i];S=fresh();shown.clear();CH={};chHint=false;chDone=false;lastGoals=[];clearInterval(chTimer);sideTab=L.kind==='defi'?'defis':'lecons';try{history.replaceState(null,'','#'+L.id)}catch(e){}
   L.setup.forEach(c=>run(c,true));L.prep&&L.prep();
   S.hist=[];S.flags={};taskIdx=0;since=0;

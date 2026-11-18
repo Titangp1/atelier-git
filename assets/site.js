@@ -51,7 +51,7 @@ function toast(title,body,kind){const box=$('#toasts');if(!box)return;const t=do
   box.appendChild(t);setTimeout(()=>{t.style.transition='opacity .4s,transform .4s';t.style.opacity='0';t.style.transform='translateY(10px)';setTimeout(()=>t.remove(),450)},4200)}
 
 /* ----- Progression gardée dans le navigateur ----- */
-function readProgress(){let P={done:{},xp:0,ch:{}};try{const raw=localStorage.getItem('atelier-git-progress');if(raw)P=Object.assign(P,JSON.parse(raw))}catch(e){}P.ch=P.ch||{};return P}
+function readProgress(){let P={done:{},xp:0,ch:{}};try{const raw=sessionStorage.getItem('atelier-git-progress');if(raw)P=Object.assign(P,JSON.parse(raw))}catch(e){}P.ch=P.ch||{};return P}
 
 /* ----- Animations partagées ----- */
 const reduceMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -301,14 +301,14 @@ const Account=(()=>{
   async function choosePseudo(p){need();if(!user)throw new Error('Connectez-vous d\'abord.');p=checkPseudo(p);return createFor(user,p)}
   async function resetPassword(email){need();email=String(email||'').trim();if(!/^\S+@\S+\.\S+$/.test(email))throw new Error('Indiquez d\'abord votre adresse email.');
     try{await api.resetPassword(email)}catch(e){if(e.code!=='auth/user-not-found')throw fr(e)}}
-  async function signOut(){need();await api.signOut();user=null;profile=null;emit()}
+  async function signOut(){need();await api.signOut();user=null;profile=null;try{sessionStorage.removeItem('atelier-git-progress')}catch(e){}emit()}
 
   /* Fusionne la progression du navigateur et celle du compte : une leçon terminée d'un côté l'est des deux. */
   async function sync(){if(!api||!user)return null;if(!profile)await refresh();if(!profile)return null;
     const P=readProgress(),remote=profile.done.filter(id=>KNOWN.has(id)),remoteCh=profile.challenges.filter(id=>KNOWN_CH.has(id));let changed=false;
     remote.forEach(id=>{if(!P.done[id]){P.done[id]=true;changed=true}});
     remoteCh.forEach(id=>{if(!P.ch[id]){P.ch[id]=true;changed=true}});
-    if(changed){P.xp=xpTotal(Object.keys(P.done).filter(k=>P.done[k]),Object.keys(P.ch).filter(k=>P.ch[k]));try{localStorage.setItem('atelier-git-progress',JSON.stringify(P))}catch(e){}}
+    if(changed){P.xp=xpTotal(Object.keys(P.done).filter(k=>P.done[k]),Object.keys(P.ch).filter(k=>P.ch[k]));try{sessionStorage.setItem('atelier-git-progress',JSON.stringify(P))}catch(e){}}
     const all=[...new Set([...remote,...localDone()])].sort(),allCh=[...new Set([...remoteCh,...localCh()])].sort();
     if(all.length!==remote.length||allCh.length!==remoteCh.length){try{await api.updateDone(user.id,all,allCh)}catch(e){throw fr(e)}await refresh()}
     emit();return profile}
