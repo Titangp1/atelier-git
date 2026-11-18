@@ -3,7 +3,7 @@
 'use strict';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const APP_VERSION='2.0.0';
+const APP_VERSION='2.1.0';
 
 /* Liste des leçons pour l'accueil (générée depuis atelier.js au moment de la construction). */
 const LESSONS_META=[{"id": "premier", "title": "Votre premier dépôt", "short": "init · add · commit", "level": "Débutant", "xp": 50}, {"id": "zones", "title": "Les trois zones", "short": "status · diff · add", "level": "Débutant", "xp": 50}, {"id": "historique", "title": "Voyager dans l'historique", "short": "log · restore · reset", "level": "Débutant", "xp": 50}, {"id": "branches", "title": "Les branches", "short": "branch · switch", "level": "Intermédiaire", "xp": 50}, {"id": "fusion", "title": "Fusionner des branches", "short": "merge", "level": "Intermédiaire", "xp": 50}, {"id": "conflit", "title": "Résoudre un conflit", "short": "merge · conflit", "level": "Intermédiaire", "xp": 60}, {"id": "distant", "title": "Travailler à plusieurs", "short": "remote · push · pull", "level": "Avancé", "xp": 60}, {"id": "stash", "title": "Mettre de côté", "short": "stash", "level": "Avancé", "xp": 50}, {"id": "rebase", "title": "Un historique linéaire", "short": "rebase", "level": "Avancé", "xp": 60}, {"id": "enquete", "title": "Ignorer et enquêter", "short": ".gitignore · blame", "level": "Intermédiaire", "xp": 50}, {"id": "reparer", "title": "Réparer ses erreurs", "short": "amend · reflog · cherry-pick", "level": "Avancé", "xp": 60}, {"id": "bac", "title": "Bac à sable", "short": "libre", "level": "Libre", "xp": 0}];
@@ -131,11 +131,13 @@ setFx(fxLevel,false);
       const r=p.getBoundingClientRect();i.style.transform=`translate(${ev.clientX-r.left-220}px,${ev.clientY-r.top-220}px)`;p.classList.add('lit')})},{passive:true})})();
 
 /* ----- Pas de copier-coller : les commandes s'apprennent en les tapant ----- */
-(()=>{let lastT=-Infinity;const warn=()=>{const n=performance.now();if(n-lastT<2500)return;lastT=n;
+(()=>{let lastT=-Infinity;const allowed=t=>t&&t.closest&&t.closest('[data-allow-paste]'); /* les formulaires de compte acceptent le collage (gestionnaires de mots de passe) */
+  const warn=()=>{const n=performance.now();if(n-lastT<2500)return;lastT=n;
     toast('Copier-coller désactivé','Tapez la commande vous-même : c\'est en l\'écrivant qu\'on la retient.')};
-  ['copy','cut','paste','drop'].forEach(ev=>document.addEventListener(ev,e=>{e.preventDefault();warn()},true));
+  ['copy','cut','paste','drop'].forEach(ev=>document.addEventListener(ev,e=>{if(allowed(e.target))return;e.preventDefault();warn()},true));
   document.addEventListener('dragstart',e=>e.preventDefault(),true);
   document.addEventListener('keydown',e=>{const k=(e.key||'').toLowerCase(),mod=(e.ctrlKey||e.metaKey)&&!e.altKey;
+    if(allowed(e.target))return;
     if(k==='c'&&e.ctrlKey&&e.target&&e.target.id==='cmd')return; /* Ctrl+C du terminal : géré par l'atelier */
     if(mod&&(k==='c'||k==='v'||k==='x'||k==='insert')){e.preventDefault();warn();return}
     if(e.shiftKey&&k==='insert'){e.preventDefault();warn()}},true)})();
@@ -155,5 +157,129 @@ setFx(fxLevel,false);
     setTimeout(()=>step(100,'Prêt.'),Math.max(0,wait-450));
     setTimeout(()=>{sp.classList.add('out');setTimeout(()=>{sp.remove();const c=$('#cmd');if(c&&matchMedia('(hover: hover)').matches&&!document.querySelector('.overlay:not([hidden])'))c.focus({preventScroll:true})},650)},wait)})})();
 
-window.Site={APP_VERSION,LESSONS_META,CHEAT,REFS,toast,esc,readProgress,renderCheat,Refract,setFx};
+/* ----- Comptes et classement (Firebase) -----
+   Le site reste statique : Firebase Authentication gère les comptes (email ou Google),
+   Firestore garde les profils publics du classement.
+   Tant que assets/config.js est vide, le site fonctionne normalement, sans compte.
+   Les règles de firebase/firestore.rules vérifient chaque écriture : XP exacts, leçons réelles, pseudo unique. */
+const Account=(()=>{
+  const CFG=window.ATELIER_CONFIG||{},FB=CFG.firebase||null,SDK='https://www.gstatic.com/firebasejs/10.12.2/';
+  let enabled=!!(FB&&FB.apiKey&&FB.projectId),api=null,user=null,profile=null,loading=enabled,lastError=null;
+  const subs=new Set(),PSEUDO=/^[A-Za-z0-9_.-]{3,20}$/,KNOWN=new Set(LESSONS_META.filter(l=>l.id!=='bac').map(l=>l.id));
+  const PSEUDO_MSG='Le pseudo doit faire 3 à 20 caractères : lettres sans accent, chiffres, point, tiret ou tiret bas.';
+  const state=()=>({enabled,loading,user,profile,needsPseudo:!!(user&&!profile&&!loading&&!lastError),error:lastError});
+  const emit=()=>{renderChip();subs.forEach(f=>{try{f(state())}catch(e){console.error(e)}})};
+  const xpOf=ids=>ids.reduce((s,id)=>{const l=LESSONS_META.find(x=>x.id===id);return s+(l?l.xp:0)},0);
+  const localDone=()=>{const P=readProgress();return Object.keys(P.done).filter(k=>P.done[k]&&KNOWN.has(k)).sort()};
+  const FR={'auth/invalid-credential':'Email ou mot de passe incorrect.','auth/invalid-login-credentials':'Email ou mot de passe incorrect.',
+    'auth/wrong-password':'Email ou mot de passe incorrect.','auth/user-not-found':'Email ou mot de passe incorrect.',
+    'auth/email-already-in-use':'Un compte existe déjà avec cet email.','auth/weak-password':'Le mot de passe doit faire au moins 6 caractères.',
+    'auth/invalid-email':'Cette adresse email n\'est pas valide.','auth/missing-email':'Indiquez votre adresse email.',
+    'auth/too-many-requests':'Trop de tentatives. Patientez quelques minutes puis réessayez.',
+    'auth/network-request-failed':'Impossible de joindre le serveur. Vérifiez votre connexion.',
+    'auth/popup-closed-by-user':'Connexion Google annulée.','auth/cancelled-popup-request':'Connexion Google annulée.',
+    'auth/unauthorized-domain':'Ce site n\'est pas encore autorisé pour la connexion Google (Firebase : Authentication, domaines autorisés).',
+    'auth/operation-not-allowed':'Ce mode de connexion n\'est pas activé dans Firebase.',
+    'auth/requires-recent-login':'Par sécurité, reconnectez-vous puis recommencez.',
+    'auth/account-exists-with-different-credential':'Cet email est déjà utilisé avec un mot de passe : connectez-vous avec lui.',
+    'permission-denied':'Le serveur a refusé cette action.','unavailable':'Le serveur est momentanément indisponible. Réessayez.'};
+  const fr=e=>new Error(FR[e&&e.code]||(e&&e.message)||String(e));
+
+  /* Adaptateur Firebase : tout ce qui touche au SDK est ici. Les tests locaux le remplacent par un faux. */
+  async function firebaseApi(){
+    const [A,U,F]=await Promise.all(['firebase-app.js','firebase-auth.js','firebase-firestore.js'].map(f=>import(SDK+f)));
+    const app=A.initializeApp(FB),auth=U.getAuth(app),db=F.getFirestore(app);auth.languageCode='fr';
+    const prof=uid=>F.doc(db,'profiles',uid),ps=p=>F.doc(db,'pseudos',p.toLowerCase()),col=F.collection(db,'profiles');
+    const asUser=u=>u?{id:u.uid,email:u.email||'',name:u.displayName||''}:null;
+    return {
+      onAuth:cb=>U.onAuthStateChanged(auth,u=>cb(asUser(u))),
+      signUpEmail:async(e,p)=>asUser((await U.createUserWithEmailAndPassword(auth,e,p)).user),
+      signInEmail:async(e,p)=>asUser((await U.signInWithEmailAndPassword(auth,e,p)).user),
+      signInGoogle:async()=>{const pr=new U.GoogleAuthProvider();pr.setCustomParameters({prompt:'select_account'});
+        try{return asUser((await U.signInWithPopup(auth,pr)).user)}catch(e){if(e.code==='auth/popup-blocked'){await U.signInWithRedirect(auth,pr);return null}throw e}},
+      resetPassword:e=>U.sendPasswordResetEmail(auth,e),
+      signOut:()=>U.signOut(auth),
+      deleteUser:()=>U.deleteUser(auth.currentUser),
+      /* Firebase exige une connexion récente (environ 5 minutes) pour supprimer un compte. */
+      recentLogin:()=>{const t=auth.currentUser&&auth.currentUser.metadata.lastSignInTime;return !!t&&Date.now()-Date.parse(t)<4.5*60e3},
+      getProfile:async uid=>{const s=await F.getDoc(prof(uid));return s.exists()?s.data():null},
+      pseudoTaken:async p=>(await F.getDoc(ps(p))).exists(),
+      createProfile:async(uid,pseudo,done)=>{const b=F.writeBatch(db),now=F.serverTimestamp();
+        b.set(prof(uid),{pseudo,pseudoLower:pseudo.toLowerCase(),done,xp:xpOf(done),lessonsDone:done.length,createdAt:now,updatedAt:now});
+        b.set(ps(pseudo),{uid});await b.commit()},
+      updateDone:async(uid,done)=>{await F.updateDoc(prof(uid),{done,xp:xpOf(done),lessonsDone:done.length,updatedAt:F.serverTimestamp()})},
+      changePseudo:async(uid,old,pseudo)=>{const b=F.writeBatch(db);
+        b.update(prof(uid),{pseudo,pseudoLower:pseudo.toLowerCase(),updatedAt:F.serverTimestamp()});
+        if(old.toLowerCase()!==pseudo.toLowerCase()){b.set(ps(pseudo),{uid});b.delete(ps(old))}await b.commit()},
+      deleteProfile:async(uid,pseudo)=>{const b=F.writeBatch(db);b.delete(prof(uid));if(pseudo)b.delete(ps(pseudo));await b.commit()},
+      top:async n=>(await F.getDocs(F.query(col,F.orderBy('xp','desc'),F.limit(n)))).docs.map(d=>({id:d.id,...d.data()})),
+      countAbove:async xp=>(await F.getCountFromServer(F.query(col,F.where('xp','>',xp)))).data().count,
+      countAll:async()=>(await F.getCountFromServer(col)).data().count};
+  }
+  const norm=r=>r?{pseudo:r.pseudo,xp:r.xp||0,lessons_done:r.lessonsDone||0,done:r.done||[]}:null;
+  const millis=t=>t&&typeof t.toMillis==='function'?t.toMillis():(t instanceof Date?t.getTime():+t||0);
+
+  async function refresh(){if(!user){profile=null;return}try{profile=norm(await api.getProfile(user.id));lastError=null}catch(e){lastError=fr(e).message;profile=null}}
+  function connect(a){api=a;enabled=true;loading=true;emit();let first=true;
+    api.onAuth(async u=>{user=u;await refresh();if(first){first=false;loading=false}emit();if(user&&profile)sync().catch(()=>{})})}
+  async function init(){renderChip();if(!enabled)return;
+    try{connect(await firebaseApi())}catch(e){console.error(e);lastError='Le service de comptes ne répond pas. Réessayez plus tard.';loading=false;emit()}}
+  const need=()=>{if(!api)throw new Error(enabled?'Le service de comptes se charge encore, réessayez dans un instant.':'Les comptes ne sont pas encore activés sur ce site.')};
+  const checkPseudo=p=>{p=String(p||'').trim();if(!PSEUDO.test(p))throw new Error(PSEUDO_MSG);return p};
+  async function createFor(u,pseudo){
+    if(await api.pseudoTaken(pseudo))throw new Error('Ce pseudo est déjà pris.');
+    try{await api.createProfile(u.id,pseudo,localDone())}catch(e){throw e.code==='permission-denied'?new Error('Ce pseudo vient d\'être pris. Choisissez-en un autre.'):fr(e)}
+    user=u;await refresh();emit();return profile}
+
+  async function signUp(email,password,pseudo){need();pseudo=checkPseudo(pseudo);email=String(email).trim();
+    if(!/^\S+@\S+\.\S+$/.test(email))throw new Error('Cette adresse email n\'est pas valide.');
+    if(String(password).length<6)throw new Error('Le mot de passe doit faire au moins 6 caractères.');
+    if(await api.pseudoTaken(pseudo).catch(e=>{throw fr(e)}))throw new Error('Ce pseudo est déjà pris.');
+    let u;try{u=await api.signUpEmail(email,password)}catch(e){throw fr(e)}
+    user=u;try{return await createFor(u,pseudo)}catch(e){await refresh();emit();throw new Error(e.message+' Votre compte est créé : choisissez un autre pseudo ci-dessous.')}}
+  async function signIn(email,password){need();let u;try{u=await api.signInEmail(String(email).trim(),password)}catch(e){throw fr(e)}
+    user=u;await refresh();emit();if(profile)await sync().catch(()=>{});return profile}
+  async function signInGoogle(){need();let u;try{u=await api.signInGoogle()}catch(e){throw fr(e)}if(!u)return null;
+    user=u;await refresh();emit();if(profile)await sync().catch(()=>{});return {profile,needsPseudo:!profile}}
+  async function choosePseudo(p){need();if(!user)throw new Error('Connectez-vous d\'abord.');p=checkPseudo(p);return createFor(user,p)}
+  async function resetPassword(email){need();email=String(email||'').trim();if(!/^\S+@\S+\.\S+$/.test(email))throw new Error('Indiquez d\'abord votre adresse email.');
+    try{await api.resetPassword(email)}catch(e){if(e.code!=='auth/user-not-found')throw fr(e)}}
+  async function signOut(){need();await api.signOut();user=null;profile=null;emit()}
+
+  /* Fusionne la progression du navigateur et celle du compte : une leçon terminée d'un côté l'est des deux. */
+  async function sync(){if(!api||!user)return null;if(!profile)await refresh();if(!profile)return null;
+    const P=readProgress(),remote=profile.done.filter(id=>KNOWN.has(id));let changed=false;
+    remote.forEach(id=>{if(!P.done[id]){P.done[id]=true;changed=true}});
+    if(changed){P.xp=xpOf(Object.keys(P.done).filter(k=>P.done[k]));try{localStorage.setItem('atelier-git-progress',JSON.stringify(P))}catch(e){}}
+    const all=[...new Set([...remote,...localDone()])].sort();
+    if(all.length!==remote.length){try{await api.updateDone(user.id,all)}catch(e){throw fr(e)}await refresh()}
+    emit();return profile}
+  async function setPseudo(p){need();p=checkPseudo(p);if(!profile)throw new Error('Profil introuvable.');if(p===profile.pseudo)return profile;
+    if(p.toLowerCase()!==profile.pseudo.toLowerCase()&&await api.pseudoTaken(p))throw new Error('Ce pseudo est déjà pris.');
+    try{await api.changePseudo(user.id,profile.pseudo,p)}catch(e){throw e.code==='permission-denied'?new Error('Ce pseudo vient d\'être pris. Choisissez-en un autre.'):fr(e)}
+    await refresh();emit();return profile}
+  async function deleteAccount(){need();if(!user)return;
+    if(api.recentLogin&&!api.recentLogin())throw new Error('Par sécurité, la suppression demande une connexion récente. Déconnectez-vous, reconnectez-vous, puis recommencez : rien n’a été effacé.');
+    try{await api.deleteProfile(user.id,profile&&profile.pseudo)}catch(e){throw fr(e)}
+    try{await api.deleteUser()}catch(e){await refresh();emit();
+      if(e.code==='auth/requires-recent-login')throw new Error('Votre profil est retiré du classement. Pour effacer aussi votre compte de connexion, déconnectez-vous, reconnectez-vous puis recommencez.');throw fr(e)}
+    user=null;profile=null;emit()}
+  async function leaderboard(limit=100){need();let rows;try{rows=await api.top(limit)}catch(e){throw fr(e)}
+    return rows.map(r=>({id:r.id,pseudo:r.pseudo,xp:r.xp||0,lessons_done:r.lessonsDone||0,updated:millis(r.updatedAt)}))
+      .sort((a,b)=>b.xp-a.xp||a.updated-b.updated)}
+  async function rankOf(xp){need();try{return (await api.countAbove(xp))+1}catch(e){throw fr(e)}}
+  async function players(){need();try{return await api.countAll()}catch(e){throw fr(e)}}
+
+  /* Bouton du compte dans la barre du haut */
+  function renderChip(){const a=$('#acctBtn');if(a){const name=a.querySelector('.acct-name'),av=a.querySelector('.acct-av'),st=state();
+      if(user&&profile){name.textContent=profile.pseudo;av.textContent=profile.pseudo[0].toUpperCase();a.classList.add('in');a.title='Votre compte'}
+      else if(st.needsPseudo){name.textContent='Choisir un pseudo';av.textContent='';a.classList.add('in');a.title='Dernière étape : votre pseudo'}
+      else{name.textContent='Se connecter';av.textContent='';a.classList.remove('in');a.title=enabled?'Créer un compte ou se connecter':'Les comptes arrivent bientôt'}}
+    const xp=$('#xp');if(xp)xp.textContent=readProgress().xp}
+
+  return {init,state,onChange:f=>{subs.add(f);f(state());return()=>subs.delete(f)},signUp,signIn,signInGoogle,choosePseudo,resetPassword,signOut,
+    sync,setPseudo,deleteAccount,leaderboard,rankOf,players,PSEUDO,_connect:connect /* utilisé par les tests locaux avec un faux service */}})();
+Account.init();
+
+window.Site={APP_VERSION,LESSONS_META,CHEAT,REFS,toast,esc,readProgress,renderCheat,Refract,setFx,account:Account};
 })();

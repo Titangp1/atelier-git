@@ -768,6 +768,7 @@ function evaluate(){const L=LESSONS[cur];let moved=false;
     if(!ok)break;taskIdx++;since=S.hist.length;moved=true}
   if(moved){renderTasks(true);
     if(taskIdx===L.tasks.length&&L.tasks.length&&!P.done[L.id]){P.done[L.id]=true;P.xp+=L.xp;saveP();renderSidebar();
+      Site.account.sync().then(p=>{if(p)toast('Classement mis à jour',`${p.pseudo} · ${p.xp} XP`,'ok')}).catch(()=>{});
       toast('Leçon terminée',`+${L.xp} XP · ${L.title}`,'ok')}}}
 
 /* =========================================================
@@ -939,7 +940,7 @@ document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=
 /* ----- Réinitialiser la progression (confirmation dans la page) ----- */
 const rb=$('#btnResetAll');let armT=0;const rbLabel=rb.textContent;
 rb.onclick=()=>{if(!rb.classList.contains('armed')){rb.classList.add('armed');rb.textContent='Confirmer : tout effacer ?';armT=setTimeout(()=>{rb.classList.remove('armed');rb.textContent=rbLabel},4000);return}
-  clearTimeout(armT);rb.classList.remove('armed');rb.textContent=rbLabel;P={done:{},xp:0};saveP();startLesson(0);toast('Progression effacée','Vous repartez de la leçon 1.')};
+  clearTimeout(armT);rb.classList.remove('armed');rb.textContent=rbLabel;P={done:{},xp:0};saveP();startLesson(0);toast('Progression effacée',Site.account.state().user?'Sur ce navigateur seulement : votre compte garde vos leçons terminées.':'Vous repartez de la leçon 1.')};
 
 
 /* ----- Aide-mémoire (fenêtre rapide, sans quitter l'atelier) ----- */
@@ -957,6 +958,8 @@ const byHash=()=>LESSONS.findIndex(l=>'#'+l.id===location.hash);
 let start=byHash();
 if(start<0){start=0;try{const s=+localStorage.getItem('atelier-git-current');if(s>=0&&s<LESSONS.length)start=s}catch(e){}}
 startLesson(start);
+/* Quand le compte apporte des leçons terminées ailleurs, on recharge la progression. */
+Site.account.onChange(()=>{const np=Site.readProgress();if(JSON.stringify(np.done)!==JSON.stringify(P.done)){P=np;renderSidebar()}});
 addEventListener('hashchange',()=>{const i=byHash();if(i>=0&&i!==cur)startLesson(i)});
 window.__atelier={TypeFX};
 })();

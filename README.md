@@ -5,7 +5,7 @@ Réalisé par **Titan_gp1**.
 
 **Essayer en ligne : https://titangp1.github.io/atelier-git/**
 
-Version actuelle : **2.0.0**
+Version actuelle : **2.1.0**
 
 ## Ce que contient l'atelier
 
@@ -32,6 +32,8 @@ Le copier-coller est désactivé et rien ne s'écrit tout seul dans le terminal 
 | Accueil | `index.html` | Présentation, démo animée, votre progression, le parcours des 11 leçons |
 | Atelier | `atelier.html` | Les leçons, le terminal simulé, le graphe et les trois zones. Chaque leçon a son adresse, par exemple `atelier.html#branches` |
 | Aide-mémoire | `aide-memoire.html` | Toutes les commandes, avec une recherche |
+| Classement | `classement.html` | Les joueurs rangés par XP, avec votre rang |
+| Compte | `compte.html` | Inscription, connexion, pseudo, suppression du compte |
 | À propos | `a-propos.html` | Crédits, historique des versions, code source |
 
 Le dossier `assets/` contient le style commun (`style.css`), le code partagé par toutes les pages (`site.js`),
@@ -41,6 +43,25 @@ le moteur Git et les leçons (`atelier.js`) et le code de l'accueil et de l'aide
 
 Double-cliquez sur `index.html` : le site s'ouvre dans votre navigateur, sans installation.
 Seules les polices viennent d'Internet ; hors ligne, des polices système les remplacent.
+
+## Comptes et classement
+
+Les comptes et le classement passent par [Firebase](https://firebase.google.com) (offre gratuite Spark) :
+*Authentication* pour les comptes (email et mot de passe, ou Google) et *Firestore* pour les profils du classement.
+Le site reste statique. Tant que `assets/config.js` est vide, il fonctionne normalement, sans compte.
+
+Mise en place, dans la [console Firebase](https://console.firebase.google.com) :
+
+1. Créer un projet, puis y ajouter une application **Web** et copier son objet `firebaseConfig`.
+2. *Authentication → Sign-in method* : activer **Adresse e-mail/Mot de passe** et **Google**.
+3. *Authentication → Paramètres → Domaines autorisés* : ajouter `titangp1.github.io`.
+4. *Firestore Database* : créer la base en mode production (région `europe-west`).
+5. *Firestore → Règles* : coller le contenu de `firebase/firestore.rules`, puis publier.
+6. Coller l'objet `firebaseConfig` dans `assets/config.js`, à la place de `null`.
+
+Sécurité : la configuration Web de Firebase est publique par conception. Les règles Firestore vérifient chaque écriture :
+chacun ne modifie que son propre profil, les XP doivent correspondre exactement aux leçons terminées (590 XP au maximum),
+la liste des leçons ne peut que grandir et chaque pseudo est unique. Aucun email n'est stocké dans le classement.
 
 ## Commandes simulées
 
@@ -52,6 +73,14 @@ Seules les polices viennent d'Internet ; hors ligne, des polices système les re
 Les modes interactifs (`git add -p`, `git rebase -i`) ne sont pas simulés : l'atelier explique ce qu'ils font.
 
 ## Historique des versions
+
+### 2.1.0
+
+- Comptes : inscription avec un pseudo, connexion, changement de pseudo, suppression du compte.
+- Page Classement : les joueurs rangés par XP, médailles pour le podium, votre rang en tête de page.
+- La progression suit le compte : une leçon terminée sur un appareil apparaît sur les autres.
+- Connexion par email ou avec Google, mot de passe oublié, choix du pseudo à la première connexion Google.
+- Les règles Firestore vérifient les XP ; les formulaires de compte acceptent le collage (gestionnaires de mots de passe).
 
 ### 2.0.0
 

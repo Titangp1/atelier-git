@@ -1,0 +1,95 @@
+rules_version = '2';
+
+// Atelier Git · règles de sécurité Firestore (comptes et classement).
+// Réalisé par Titan_gp1.
+//
+// Données :
+//   profiles/{uid}   pseudo, pseudoLower, done (leçons terminées), xp, lessonsDone, createdAt, updatedAt
+//   pseudos/{pseudo} uid  (réserve un pseudo, en minuscules, pour qu'il n'existe qu'une fois)
+//
+// Ce que ces règles garantissent, à chaque écriture :
+//   * chacun ne crée, ne modifie et ne supprime que son propre profil ;
+//   * les XP valent exactement la somme des leçons déclarées (50, ou 60 pour les leçons avancées) :
+//     impossible d'écrire un score arbitraire, 590 XP au maximum ;
+//   * la liste des leçons terminées ne contient que de vraies leçons, sans doublon, et ne peut que grandir ;
+//   * un pseudo n'appartient qu'à un seul compte ;
+//   * le classement est lisible par tous ; aucun email n'est stocké dans Firestore.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function lessonIds() {
+      return ['premier', 'zones', 'historique', 'branches', 'fusion', 'conflit',
+              'distant', 'stash', 'rebase', 'enquete', 'reparer'];
+    }
+    // Leçons à 60 XP ; toutes les autres valent 50 XP.
+    function bonusIds() {
+      return ['conflit', 'distant', 'rebase', 'reparer'];
+    }
+    function profileKeys() {
+      return ['pseudo', 'pseudoLower', 'done', 'xp', 'lessonsDone', 'createdAt', 'updatedAt'];
+    }
+    function signedIn() {
+      return request.auth != null;
+    }
+    function validPseudo(d) {
+      return d.pseudo is string
+        && d.pseudo.matches('^[A-Za-z0-9_.-]{3,20}$')
+        && d.pseudoLower == d.pseudo.lower();
+    }
+    function validProgress(d) {
+      return d.done is list
+        && d.done.size() <= 11
+        && d.done.hasOnly(lessonIds())
+        && d.done.toSet().size() == d.done.size()
+        && d.lessonsDone == d.done.size()
+        && d.xp == 50 * d.done.size() + 10 * d.done.toSet().intersection(bonusIds().toSet()).size();
+    }
+    // Le pseudo du profil doit être réservé par ce même compte, au plus tard dans la même écriture groupée.
+    function ownsPseudo(d) {
+      return getAfter(/databases/$(database)/documents/pseudos/$(d.pseudoLower)).data.uid == request.auth.uid;
+    }
+
+    match /profiles/{uid} {
+      allow read: if true;
+
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(profileKeys())
+        && validPseudo(request.resource.data)
+        && validProgress(request.resource.data)
+        && ownsPseudo(request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      allow update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(profileKeys())
+        && validPseudo(request.resource.data)
+        && validProgress(request.resource.data)
+        && ownsPseudo(request.resource.data)
+        && request.resource.data.done.hasAll(resource.data.done)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+
+      allow delete: if signedIn() && request.auth.uid == uid;
+    }
+
+    match /pseudos/{pseudo} {
+      allow read: if true;
+
+      // Réserver un pseudo : seulement pour soi, et seulement si le profil le porte après l'écriture.
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['uid'])
+        && request.resource.data.uid == request.auth.uid
+        && pseudo.matches('^[a-z0-9_.-]{3,20}$')
+        && getAfter(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.pseudoLower == pseudo;
+
+      // Libérer un pseudo : seulement le sien, quand on en change ou qu'on supprime son profil.
+      allow delete: if signedIn()
+        && resource.data.uid == request.auth.uid
+        && (!existsAfter(/databases/$(database)/documents/profiles/$(request.auth.uid))
+            || getAfter(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.pseudoLower != pseudo);
+
+      allow update: if false;
+    }
+  }
+}
