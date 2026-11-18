@@ -183,7 +183,11 @@ const Account=(()=>{
     'auth/requires-recent-login':'Par sécurité, reconnectez-vous puis recommencez.',
     'auth/account-exists-with-different-credential':'Cet email est déjà utilisé avec un mot de passe : connectez-vous avec lui.',
     'permission-denied':'Le serveur a refusé cette action.','unavailable':'Le serveur est momentanément indisponible. Réessayez.'};
-  const fr=e=>new Error(FR[e&&e.code]||(e&&e.message)||String(e));
+  const fr=e=>{const c=(e&&e.code)||'';
+    /* Erreurs de configuration du site : elles concernent l'administrateur, pas le visiteur. */
+    if(/^auth\/(api-key-not-valid|invalid-api-key)/.test(c))return new Error('La configuration Firebase du site est incorrecte : Google refuse sa clé API. Il faut recopier la configuration depuis la console Firebase.');
+    if(c==='auth/configuration-not-found')return new Error('La connexion n’est pas encore activée dans Firebase (Authentication, bouton « Commencer »).');
+    return new Error(FR[c]||(e&&e.message)||String(e))};
 
   /* Adaptateur Firebase : tout ce qui touche au SDK est ici. Les tests locaux le remplacent par un faux. */
   async function firebaseApi(){
