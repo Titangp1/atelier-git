@@ -142,9 +142,10 @@ if(page==='classement'){const A=Site.account,body=$('#board'),msg=$('#boardState
     if(st.loading)return;if(busy){again=true;return}busy=true;$('#boardRefresh').disabled=true;
     try{const rows=await A.leaderboard(100),me=A.state().user;let rank=0,prev=null;
       body.innerHTML=rows.map((r,i)=>{if(r.xp!==prev){rank=i+1;prev=r.xp}const mine=me&&r.id===me.id;
-        return `<tr class="${mine?'me':''}"><td class="rk"><span class="rank${rank<=3?' r'+rank:''}">${rank}</span></td>
+        return `<tr class="${mine?'me':''}" style="animation-delay:${Math.min(i*40,800)}ms"><td class="rk"><span class="rank${rank<=3?' r'+rank:''}">${rank}</span></td>
           <td class="who">${esc(r.pseudo)}${mine?' <span class="you">vous</span>':''}</td>
           <td><span class="lessons"><span class="mini"><i style="width:${Math.round(r.lessons_done/11*100)}%"></i></span>${r.lessons_done} / 11</span></td>
+          <td class="dc">${r.challenges_done||0}</td>
           <td class="xp">${r.xp}</td></tr>`}).join('');
       say(rows.length?'':'Personne n\'est encore classé. Terminez une leçon pour prendre la première place !');
       A.players().then(n=>{$('#boardCount').textContent=`${n} joueur${n>1?'s':''} inscrit${n>1?'s':''}`}).catch(()=>{})}
@@ -158,4 +159,23 @@ if(page==='classement'){const A=Site.account,body=$('#board'),msg=$('#boardState
   A.onChange(st=>{me(st);const key=`${st.enabled}|${st.user?st.user.id:''}|${st.profile?st.profile.xp:'-'}`;if(!st.loading&&key!==lastKey){lastKey=key;load()}});
   $('#boardRefresh').addEventListener('click',load);
 }
+
+/* ===================== Défis ===================== */
+if(page==='defis'){const {CHALLENGES_META,DIFFS}=Site,P=readProgress(),grid=$('#dgrid');
+  const done=CHALLENGES_META.filter(c=>P.ch[c.id]),total=CHALLENGES_META.reduce((s,c)=>s+c.xp,0),got=done.reduce((s,c)=>s+c.xp,0);
+  $('#chProg').innerHTML=`<b>${done.length} / ${CHALLENGES_META.length}</b> défis réussis · <b>${got}</b> / ${total} XP`;
+  requestAnimationFrame(()=>{$('#chBar').style.width=(got/total*100)+'%'});
+  grid.innerHTML=CHALLENGES_META.map(c=>{const ok=!!P.ch[c.id],d=DIFFS[c.diff];
+    return `<a class="dcard d-${c.diff}${ok?' done':''}" href="atelier.html#${c.id}" data-diff="${c.diff}">
+      <span class="dtop"><span class="dlevel"><span class="dmeter" aria-hidden="true"><i></i><i></i><i></i><i></i></span>${d.label}</span><span class="dxp">+${c.xp} XP</span></span>
+      <b class="dtitle">${esc(c.title)}</b><span class="dshort">${esc(c.short)}</span>
+      <span class="dfoot"><span class="dstate">${ok?'✓ Réussi':'À relever'}</span><span class="dgo">${ok?'Rejouer':'Relever le défi'} <span aria-hidden="true">→</span></span></span></a>`}).join('');
+  const chips=[...document.querySelectorAll('.fchip')];
+  chips.forEach(b=>b.addEventListener('click',()=>{chips.forEach(x=>x.setAttribute('aria-pressed',String(x===b)));const f=b.dataset.f;
+    grid.querySelectorAll('.dcard').forEach((c,i)=>{const show=f==='tous'||c.dataset.diff===f;c.hidden=!show;if(show){c.classList.remove('fade');void c.offsetWidth;c.style.animationDelay=Math.min(i*40,400)+'ms';c.classList.add('fade')}})}));
+}
+
+/* ===================== Accueil : chiffres et défis ===================== */
+if(page==='accueil'){const P=readProgress(),cd=Site.CHALLENGES_META.filter(c=>P.ch[c.id]).length,dl=$('#homeDefis');
+  if(dl)dl.textContent=cd?`Vous en avez réussi ${cd} sur ${Site.CHALLENGES_META.length}.`:'Aucun indice tout prêt, juste un objectif : à vous de trouver les commandes.'}
 })();

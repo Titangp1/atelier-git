@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Défis · Atelier Git</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Onze défis Git de Facile à Expert : un objectif, aucune commande imposée, jusqu'à 150 XP. Réalisé par Titan_gp1.">
+<meta name="author" content="Titan_gp1">
+<script>(function(){try{var d=document.documentElement,t=localStorage.getItem('atelier-git-theme');if(t)d.dataset.theme=t;var f=localStorage.getItem('atelier-git-fx');if(f==='lite'||f==='max')d.classList.add('fx-'+f);if(sessionStorage.getItem('atelier-git-splash'))d.classList.add('no-splash')}catch(e){}})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-page="defis">
+<div class="splash" id="splash" role="status" aria-live="polite" aria-label="Chargement de l'Atelier Git">
+  <div class="splash-card">
+    <svg class="splash-graph" viewBox="0 0 220 70" aria-hidden="true">
+      <path class="sg-line l0" d="M14 50 H206" pathLength="100"/>
+      <path class="sg-line l1" d="M54 50 C72 50 74 20 92 20 H150 C168 20 172 50 190 50" pathLength="100"/>
+      <circle class="sg-dot l0" cx="14" cy="50" r="7" style="animation-delay:.05s"/>
+      <circle class="sg-dot l0" cx="54" cy="50" r="7" style="animation-delay:.25s"/>
+      <circle class="sg-dot l1" cx="92" cy="20" r="7" style="animation-delay:.5s"/>
+      <circle class="sg-dot l0" cx="118" cy="50" r="7" style="animation-delay:.6s"/>
+      <circle class="sg-dot l1" cx="150" cy="20" r="7" style="animation-delay:.75s"/>
+      <circle class="sg-dot l0" cx="190" cy="50" r="9" style="animation-delay:1s"/>
+    </svg>
+    <div class="splash-title">Atelier Git</div>
+    <div class="splash-sub">Apprendre Git en tapant de vraies commandes</div>
+    <div class="splash-bar"><i id="splashBar"></i></div>
+    <div class="splash-status" id="splashStatus">$ git init</div>
+  </div>
+  <div class="splash-foot"><span class="ver">v2.2.0</span> · Réalisé par <b>Titan_gp1</b></div>
+</div>
+
+<div class="scene" aria-hidden="true">
+  <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><span class="blob b4"></span>
+  <svg class="deco" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+    <path d="M-60 560 H1260" stroke="var(--lane0)"/>
+    <path d="M220 560 C 330 560 330 330 450 330 H 760 C 880 330 880 560 990 560" stroke="var(--lane1)"/>
+    <path d="M560 330 C 640 330 640 150 740 150 H 1260" stroke="var(--lane2)"/>
+    <circle cx="120" cy="560" r="30" fill="var(--lane0)"/><circle cx="220" cy="560" r="30" fill="var(--lane0)"/>
+    <circle cx="450" cy="330" r="30" fill="var(--lane1)"/><circle cx="600" cy="330" r="30" fill="var(--lane1)"/>
+    <circle cx="760" cy="330" r="30" fill="var(--lane1)"/><circle cx="640" cy="560" r="30" fill="var(--lane0)"/>
+    <circle cx="990" cy="560" r="38" fill="var(--lane0)"/><circle cx="880" cy="150" r="30" fill="var(--lane2)"/>
+    <circle cx="1060" cy="150" r="30" fill="var(--lane2)"/>
+  </svg>
+</div>
+
+<div class="page">
+  <header class="topbar glass" data-refract="12">
+    <a class="brand" href="index.html" aria-label="Atelier Git, accueil">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><circle cx="6" cy="18" r="2.6"/><circle cx="6" cy="6" r="2.6"/><circle cx="18" cy="9" r="2.6"/><path d="M6 8.6v6.8M18 11.6c0 4-6 3-11 5"/></svg>
+      </span>
+      <span><b>Atelier Git <span class="ver" title="Version de l'application">v2.2.0</span></b><small>Apprendre Git en tapant de vraies commandes</small></span>
+    </a>
+    <nav class="site-nav" aria-label="Pages du site">
+      <a href="index.html">Accueil</a>
+      <a href="atelier.html">Atelier</a>
+      <a href="defis.html" aria-current="page">Défis</a>
+      <a href="classement.html">Classement</a>
+      <a href="aide-memoire.html">Aide-mémoire</a>
+      <a href="a-propos.html">À propos</a>
+    </nav>
+    <div class="top-actions">
+      <a class="gbtn acct" id="acctBtn" href="compte.html" title="Créer un compte ou se connecter"><span class="acct-av" aria-hidden="true"></span><span class="acct-name">Se connecter</span></a>
+      <div class="xp" title="Points gagnés en terminant les leçons"><span id="xp">0</span><small>XP</small></div>
+      <button class="gbtn fxbtn" id="btnFx" type="button" title="Régler les effets visuels : le verre demande beaucoup de calcul"><span class="fxdot" aria-hidden="true"></span><span id="fxLabel">Effets : équilibrés</span></button>
+      <button class="gbtn icon" id="btnTheme" type="button" aria-label="Changer de thème" title="Changer de thème">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor"/></svg>
+      </button>
+    </div>
+  </header>
+<main class="page-main" style="display:grid;gap:18px">
+  <section class="glass section-pad">
+    <p class="eyebrow">Mode défi</p>
+    <h1 class="title">Défis</h1>
+    <p class="intro">Ici, rien à recopier : un dépôt déjà préparé, un objectif, et à vous de trouver les commandes. Un seul indice par défi, un chronomètre, et de 30 à 150 XP à la clé.</p>
+    <div class="chal-progress"><div class="bar"><i id="chBar"></i></div><span id="chProg"></span></div>
+    <div class="filters" role="group" aria-label="Filtrer par difficulté">
+      <button type="button" class="fchip" data-f="tous" aria-pressed="true">Tous</button>
+      <button type="button" class="fchip d-facile" data-f="facile" aria-pressed="false">Facile</button>
+      <button type="button" class="fchip d-moyen" data-f="moyen" aria-pressed="false">Moyen</button>
+      <button type="button" class="fchip d-difficile" data-f="difficile" aria-pressed="false">Difficile</button>
+      <button type="button" class="fchip d-expert" data-f="expert" aria-pressed="false">Expert</button>
+    </div>
+  </section>
+  <section class="dgrid" id="dgrid" aria-label="Liste des défis"></section>
+</main>
+  <footer class="credit">
+    <span>Atelier Git <span class="ver">v2.2.0</span></span>
+    <span aria-hidden="true">·</span>
+    <span>Réalisé par <b>Titan_gp1</b></span>
+    <span aria-hidden="true">·</span>
+    <span><a href="https://github.com/Titangp1/atelier-git" target="_blank" rel="noopener">Code source sur GitHub</a></span>
+    <span aria-hidden="true" data-players-sep hidden>·</span>
+    <span data-players hidden></span>
+  </footer>
+</div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<script src="assets/config.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/pages.js"></script>
+</body>
+</html>

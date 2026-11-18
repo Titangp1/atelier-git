@@ -744,6 +744,122 @@ const LESSONS=[
  ideas:[`git clone ${SERVER_URL}`,'git log --oneline --all','git config alias.st status','git reflog','git blame index.html','git switch -c essai','git tag v1.0','git revert HEAD','git switch --detach HEAD~1','git config user.name "Camille"'],
  tasks:[]},
 ];
+
+/* =========================================================
+   Défis : un objectif, un dépôt préparé, aucune commande imposée.
+   Chaque objectif vérifie l'état final : plusieurs solutions sont acceptées.
+   ========================================================= */
+let CH={};
+const DIFF=Site.DIFFS;
+const isClean=()=>{if(!S.repo||!headId())return false;const c=changes();return !c.staged.length&&!c.unstaged.length&&!c.untracked.length};
+const noMarkers=f=>{const t=HT(f);return t!==undefined&&!/^(<<<<<<<|=======|>>>>>>>)/m.test(t)};
+const srvMain=()=>{const s=S.servers[SERVER_URL];return s&&s.branches.main};
+const CHALLENGES=[
+{id:'d-premier-pas',
+ brief:'Le dossier est vide. Créez un dépôt, écrivez un fichier README.md et enregistrez-le dans un premier commit. À la fin, le répertoire de travail doit être propre.',
+ hint:'Trois gestes : créer le dépôt, préparer le fichier dans l\'index, puis prendre la photo.',
+ setup:[],intro:'Dossier vide. À vous de jouer.',
+ goals:[
+  {t:'Un dépôt Git existe',ok:()=>!!S.repo},
+  {t:'<code>README.md</code> est dans le dernier commit',ok:()=>!!headId()&&HT('README.md')!==undefined},
+  {t:'Le répertoire de travail est propre',ok:isClean}]},
+{id:'d-oups',
+ brief:'Vous avez tout indexé d\'un coup, y compris secret.txt qui contient un mot de passe. Retirez-le de l\'index sans le supprimer du disque, puis commitez seulement la modification de index.html.',
+ hint:'Une commande désindexe un fichier sans toucher au disque : git status vous la rappelle.',
+ setup:['git init','echo "<h1>Accueil</h1>" > index.html','git add .','git commit -m "Ajoute l\'accueil"','echo "mot de passe : 1234" > secret.txt','echo "<p>Nouveautés</p>" >> index.html','git add .'],
+ intro:'secret.txt et index.html sont dans l\'index.',
+ goals:[
+  {t:'<code>secret.txt</code> n\'est dans aucun commit',ok:()=>!!headId()&&[...ancestors(headId())].every(id=>C(id).tree['secret.txt']===undefined)},
+  {t:'<code>secret.txt</code> est toujours sur le disque',ok:()=>W('secret.txt')!==undefined},
+  {t:'La modification de <code>index.html</code> est commitée',ok:()=>(HT('index.html')||'').includes('Nouveautés')}]},
+{id:'d-version',
+ brief:'La version stable du site est celle qui a ajouté la page contact, pas la dernière. Posez l\'étiquette v1.0 exactement sur ce commit-là.',
+ hint:'Retrouvez le bon commit dans l\'historique compact, puis donnez son hash à git tag.',
+ setup:['git init','echo "# Site" > README.md','git add .','git commit -m "Premier commit"','echo "<h1>Contact</h1>" > contact.html','git add .','git commit -m "Ajoute la page contact"','echo "<h1>Galerie</h1>" > galerie.html','git add .','git commit -m "Ajoute la galerie (instable)"'],
+ intro:'3 commits sur main. Le dernier n\'est pas stable.',
+ goals:[
+  {t:'L\'étiquette <code>v1.0</code> existe',ok:()=>!!(S.repo&&S.repo.tags['v1.0'])},
+  {t:'Elle désigne le commit « Ajoute la page contact »',ok:()=>{const t=S.repo&&S.repo.tags['v1.0'];return !!t&&C(t).msg==='Ajoute la page contact'}}]},
+{id:'d-menage',
+ brief:'Le dossier se remplit de journaux (.log) et de fichiers temporaires (.tmp). Faites en sorte que Git les ignore pour toujours, pour toute l\'équipe. Mais notes.txt doit rester visible : il sera commité plus tard.',
+ hint:'Un seul fichier, un motif par ligne, et pensez à le commiter pour que l\'équipe en profite.',
+ setup:['git init','echo "<h1>Accueil</h1>" > index.html','git add .','git commit -m "Ajoute l\'accueil"','echo "erreur 42" > debug.log','echo "erreur 51" > erreurs.log','echo "cache" > cache.tmp','echo "à faire" > notes.txt'],
+ intro:'4 fichiers non suivis traînent dans le dossier.',
+ goals:[
+  {t:'Les <code>.log</code> et <code>.tmp</code> sont ignorés',ok:()=>!!S.repo&&isIgnored('debug.log')&&isIgnored('erreurs.log')&&isIgnored('cache.tmp')},
+  {t:'<code>notes.txt</code> n\'est pas ignoré',ok:()=>!!S.repo&&!isIgnored('notes.txt')},
+  {t:'La règle est commitée telle quelle',ok:()=>HT('.gitignore')!==undefined&&HT('.gitignore')===W('.gitignore')},
+  {t:'Aucun journal ni fichier temporaire n\'est commité',ok:()=>!!headId()&&Object.keys(headTree()).every(f=>!/\.(log|tmp)$/.test(f))}]},
+{id:'d-sauvetage',
+ brief:'Quelqu\'un a supprimé la branche experience avec git branch -D, et ses deux commits ont disparu du graphe. Recréez la branche experience exactement là où elle s\'arrêtait.',
+ hint:'Git garde la trace de toutes les positions de HEAD. Et une branche peut naître sur n\'importe quel commit : git branch nom hash.',
+ setup:['git init','echo "# Labo" > README.md','git add .','git commit -m "Premier commit"','git switch -c experience','echo "<p>Essai</p>" > experience.html','git add .','git commit -m "Commence l\'expérience"','echo "<p>Résultat</p>" >> experience.html','git commit -am "Termine l\'expérience"','git switch main','git branch -D experience'],
+ intro:'La branche experience vient d\'être supprimée.',
+ goals:[
+  {t:'La branche <code>experience</code> existe',ok:()=>B('experience')!==undefined},
+  {t:'Elle pointe sur « Termine l\'expérience »',ok:()=>{const b=B('experience');return !!b&&C(b).msg==='Termine l\'expérience'}}]},
+{id:'d-squash',
+ brief:'La branche galerie contient trois commits brouillons (wip). Intégrez tout son travail dans main en un seul commit propre : pas de commit de fusion, pas de message wip.',
+ hint:'git merge a une option qui prépare tout dans l\'index sans créer de commit : il ne reste qu\'à commiter vous-même.',
+ setup:['git init','echo "# Site" > README.md','git add .','git commit -m "Premier commit"','git switch -c galerie','echo "<h1>Galerie</h1>" > galerie.html','git add .','git commit -m "wip 1"','echo "<img src=chat.jpg>" >> galerie.html','git commit -am "wip 2"','echo "<img src=chien.jpg>" >> galerie.html','git commit -am "wip 3 enfin"','git switch main'],
+ prep(){CH.galerie=C(B('galerie')).tree['galerie.html']},
+ intro:'galerie a 3 commits brouillons d\'avance sur main.',
+ goals:[
+  {t:'<code>main</code> contient la galerie complète',ok:()=>{const m=B('main');return !!m&&C(m).tree['galerie.html']===CH.galerie}},
+  {t:'Un seul nouveau commit sur <code>main</code>',ok:()=>{const m=B('main');return !!m&&ancestors(m).size===2}},
+  {t:'Ni commit de fusion, ni message wip',ok:()=>{const m=B('main');return !!m&&[...ancestors(m)].every(id=>C(id).parents.length<2&&!/wip/i.test(C(id).msg))}}]},
+{id:'d-double-conflit',
+ brief:'Fusionnez la branche refonte dans main. Les deux branches ont modifié index.html et style.css : il y aura deux conflits. Gardez le texte que vous voulez, mais plus aucun marqueur.',
+ hint:'Un fichier à la fois : éditez-le, git add, puis commitez quand git status ne signale plus de conflit.',
+ setup:['git init','echo "<h1>Bienvenue</h1>" > index.html','echo "h1 { color: navy; }" > style.css','git add .','git commit -m "Premier jet"','git switch -c refonte','echo "<h1>Bienvenue chez nous</h1>" > index.html','echo "h1 { color: tomato; }" > style.css','git commit -am "Refonte du titre"','git switch main','echo "<h1>Bonjour à tous</h1>" > index.html','echo "h1 { color: teal; }" > style.css','git commit -am "Nouveau titre"'],
+ intro:'main et refonte ont modifié les mêmes lignes de deux fichiers.',
+ goals:[
+  {t:'La fusion se termine par un commit à deux parents',ok:()=>!!headId()&&!S.repo.merging&&C(headId()).parents.length===2},
+  {t:'<code>index.html</code> n\'a plus de marqueurs',ok:()=>noMarkers('index.html')},
+  {t:'<code>style.css</code> n\'a plus de marqueurs',ok:()=>noMarkers('style.css')},
+  {t:'La branche <code>refonte</code> est intégrée à main',ok:()=>!!B('main')&&isAnc(B('refonte'),B('main'))}]},
+{id:'d-bon-commit',
+ brief:'La branche essais mélange des tests ratés et une vraie correction : « Corrige la faute du titre ». Ramenez seulement cette correction sur main, sans les fichiers de test et sans fusionner la branche.',
+ hint:'Une commande copie un seul commit d\'une branche à l\'autre. Donnez-lui le hash de la correction.',
+ setup:['git init','echo "<h1>Bienvenu</h1>" > index.html','git add .','git commit -m "Ajoute l\'accueil"','git switch -c essais','echo "test" > test1.txt','git add .','git commit -m "Test 1"','echo "<h1>Bienvenue</h1>" > index.html','git commit -am "Corrige la faute du titre"','echo "test" > test2.txt','git add .','git commit -m "Test 2"','git switch main'],
+ intro:'Le titre de main a une faute ; essais contient la correction, entre deux tests.',
+ goals:[
+  {t:'Le titre est corrigé sur <code>main</code>',ok:()=>{const m=B('main');return !!m&&C(m).tree['index.html']==='<h1>Bienvenue</h1>'}},
+  {t:'Aucun fichier de test sur <code>main</code>',ok:()=>{const m=B('main');return !!m&&!C(m).tree['test1.txt']&&!C(m).tree['test2.txt']}},
+  {t:'La branche essais n\'est pas fusionnée',ok:()=>{const m=B('main');return !!m&&!isAnc(B('essais'),m)&&[...ancestors(m)].every(id=>C(id).parents.length<2)}}]},
+{id:'d-amend',
+ brief:'Le dernier commit s\'appelle « azerty lol » et il lui manque un fichier : oubli.txt. Réparez ce commit : un vrai message et oubli.txt dedans, sans ajouter de commit à l\'historique.',
+ hint:'Indexez le fichier oublié, puis remplacez le dernier commit au lieu d\'en créer un nouveau.',
+ setup:['git init','echo "# Site" > README.md','git add .','git commit -m "Premier commit"','echo "<h1>Accueil</h1>" > index.html','git add .','git commit -m "azerty lol"','echo "à ne pas oublier" > oubli.txt'],
+ intro:'2 commits, le dernier mal nommé. oubli.txt n\'est pas suivi.',
+ goals:[
+  {t:'Le dernier message ne contient plus « lol »',ok:()=>!!headId()&&!/lol/i.test(C(headId()).msg)},
+  {t:'<code>oubli.txt</code> est dans le dernier commit',ok:()=>HT('oubli.txt')!==undefined},
+  {t:'L\'historique compte toujours 2 commits',ok:()=>!!headId()&&ancestors(headId()).size===2&&HT('index.html')!==undefined}]},
+{id:'d-course',
+ brief:'Léa a poussé un commit pendant que vous travailliez sur le pied de page. Publiez votre travail sur origin sans créer de commit de fusion : l\'historique du serveur doit rester une ligne droite, avec son commit et le vôtre.',
+ hint:'git pull a une option qui rejoue vos commits au-dessus de ceux du serveur au lieu de fusionner.',
+ setup:['git init','echo "# Site" > README.md','git add .','git commit -m "Premier commit"','echo "<h1>Accueil</h1>" > index.html','git add .','git commit -m "Ajoute l\'accueil"',`git remote add origin ${SERVER_URL}`,'git push -u origin main','echo "<footer>© 2026</footer>" > footer.html','git add .','git commit -m "Ajoute le pied de page"'],
+ prep(){const srv=S.servers[SERVER_URL],p=srv.branches.main,t={...C(p).tree,'contact.html':'<h1>Contact</h1>'};srv.branches.main=CH.lea=mkCommit('Ajoute la page contact',[p],t,'Léa')},
+ intro:'Vous avez 1 commit à publier, Léa en a poussé 1 entre-temps.',
+ goals:[
+  {t:'Le serveur contient votre pied de page',ok:()=>{const s=srvMain();return !!s&&C(s).tree['footer.html']!==undefined}},
+  {t:'Le serveur garde le commit de Léa',ok:()=>{const s=srvMain();return !!s&&isAnc(CH.lea,s)}},
+  {t:'L\'historique du serveur est une ligne droite',ok:()=>{const s=srvMain();return !!s&&[...ancestors(s)].every(id=>C(id).parents.length<2)}},
+  {t:'Votre <code>main</code> est à jour avec le serveur',ok:()=>!!B('main')&&B('main')===srvMain()}]},
+{id:'d-enquete',
+ brief:'Le titre du site est cassé : une balise </h11> s\'est glissée dans index.html. Trouvez le commit coupable et annulez-le proprement, sans réécrire l\'historique : les commits suivants doivent rester.',
+ hint:'git log -G ou git blame désignent le coupable ; git revert l\'annule en ajoutant un commit.',
+ setup:['git init','git config user.name "Sam"','echo "<h1>Accueil</h1>" > index.html','git add .','git commit -m "Ajoute l\'accueil"','git config user.name "Léa"','echo "h1 { color: navy; }" > style.css','git add .','git commit -m "Ajoute le style"','git config user.name "Malo"','echo "<h1>Accueil</h1>\\n<p>Horaires</p>" > index.html','git commit -am "Ajoute les horaires"','git config user.name "Léa"','echo "<h1>Accueil</h11>\\n<p>Horaires</p>" > index.html','git commit -am "Améliore le titre"','git config user.name "Sam"','echo "<h1>Contact</h1>" > contact.html','git add .','git commit -m "Ajoute le contact"','git config user.name "Malo"','echo "# Site de l\'équipe" > README.md','git add .','git commit -m "Ajoute le README"'],
+ prep(){delete S.config['user.name'];CH.orig=headId()},
+ intro:'6 commits de Sam, Léa et Malo. L\'un d\'eux a cassé le titre.',
+ goals:[
+  {t:'<code>index.html</code> n\'a plus de <code>&lt;/h11&gt;</code>',ok:()=>HT('index.html')!==undefined&&!HT('index.html').includes('</h11>')},
+  {t:'Un commit d\'annulation existe',ok:()=>!!headId()&&[...ancestors(headId())].some(id=>/^Revert/.test(C(id).msg))},
+  {t:'Les commits existants sont tous conservés',ok:()=>!!headId()&&headId()!==CH.orig&&isAnc(CH.orig,headId())}]},
+];
+CHALLENGES.forEach(c=>{const m=Site.CHALLENGES_META.find(x=>x.id===c.id);Object.assign(c,m,{kind:'defi',tasks:[],level:DIFF[m.diff].label,summary:c.brief,theory:''})});
+LESSONS.push(...CHALLENGES);
 function seedServer(){const t1={'README.md':'# Site de l\'équipe'};const a=mkCommit('Premier commit',[],t1,'Sam');
   const t2={...t1,'index.html':'<h1>Accueil</h1>'};const b=mkCommit('Ajoute l\'accueil',[a],t2,'Léa');
   const t3={...t2,'style.css':'h1 { color: tomato; }'};const c=mkCommit('Ajoute le style',[b],t3,'Sam');
@@ -754,37 +870,47 @@ function seedServer(){const t1={'README.md':'# Site de l\'équipe'};const a=mkCo
    Progression & état de la leçon
    ========================================================= */
 let cur=0,taskIdx=0,since=0;const shown=new Set();
-let P={done:{},xp:0};
+let chHint=false,chDone=false,chStart=0,chTimer=0,sideTab='lecons',lastGoals=[];
+let P={done:{},xp:0,ch:{}};
 try{const raw=localStorage.getItem('atelier-git-progress');if(raw)P=Object.assign(P,JSON.parse(raw))}catch(e){}
+P.ch=P.ch||{};
 function saveP(){try{localStorage.setItem('atelier-git-progress',JSON.stringify(P))}catch(e){}}
-function startLesson(i){cur=i;const L=LESSONS[i];S=fresh();shown.clear();try{history.replaceState(null,'','#'+L.id)}catch(e){}
+function startLesson(i){cur=i;const L=LESSONS[i];S=fresh();shown.clear();CH={};chHint=false;chDone=false;lastGoals=[];clearInterval(chTimer);sideTab=L.kind==='defi'?'defis':'lecons';try{history.replaceState(null,'','#'+L.id)}catch(e){}
   L.setup.forEach(c=>run(c,true));L.prep&&L.prep();
   S.hist=[];S.flags={};taskIdx=0;since=0;
-  outEl.innerHTML='';o(`# Leçon ${i+1} · ${L.title}`,'c-sys');o('# '+L.intro,'c-sys');o('# Tapez help si vous êtes perdu.','c-sys');
+  outEl.innerHTML='';o(L.kind==='defi'?`# Défi ${L.level} · ${L.title} · +${L.xp} XP`:`# Leçon ${i+1} · ${L.title}`,'c-sys');o('# '+L.intro,'c-sys');o('# Tapez help si vous êtes perdu.','c-sys');
   try{localStorage.setItem('atelier-git-current',String(i))}catch(e){}
-  renderSidebar();renderLesson();renderAll();lastGraphIds=new Set(Object.keys(S.objects))}
-function evaluate(){const L=LESSONS[cur];let moved=false;
+  renderSidebar();renderLesson();renderAll();lastGraphIds=new Set(Object.keys(S.objects));
+  if(L.kind==='defi'){chStart=performance.now();chTimer=setInterval(tickTimer,1000)}}
+function evaluate(){const L=LESSONS[cur];if(L.kind==='defi')return evaluateChallenge(L);let moved=false;
   while(taskIdx<L.tasks.length){const ctx={ran:re=>S.hist.slice(since).some(h=>re.test(h))};let ok=false;try{ok=L.tasks[taskIdx].ok(ctx)}catch(e){ok=false}
     if(!ok)break;taskIdx++;since=S.hist.length;moved=true}
   if(moved){renderTasks(true);
     if(taskIdx===L.tasks.length&&L.tasks.length&&!P.done[L.id]){P.done[L.id]=true;P.xp+=L.xp;saveP();renderSidebar();
       Site.account.sync().then(p=>{if(p)toast('Classement mis à jour',`${p.pseudo} · ${p.xp} XP`,'ok')}).catch(()=>{});
-      toast('Leçon terminée',`+${L.xp} XP · ${L.title}`,'ok')}}}
+      toast('Leçon terminée',`+${L.xp} XP · ${L.title}`,'ok');Site.celebrate()}}}
 
 /* =========================================================
    Rendu
    ========================================================= */
-function renderSidebar(){const done=LESSONS.filter(l=>l.tasks.length&&P.done[l.id]).length,total=LESSONS.filter(l=>l.tasks.length).length;
-  $('#xp').textContent=P.xp;$('#progTxt').textContent=`${done} / ${total}`;$('#progBar').style.width=(done/total*100)+'%';
-  $('#lessonList').innerHTML=LESSONS.map((l,i)=>`<li><button type="button" class="lbtn${i===cur?' active':''}${P.done[l.id]?' done':''}" data-i="${i}"${i===cur?' aria-current="step"':''}><span class="num">${P.done[l.id]?'✓':l.tasks.length?i+1:'∞'}</span><span><span class="lt">${esc(l.title)}</span><span class="ls">${esc(l.short)}</span></span></button></li>`).join('');}
-function renderLesson(){const L=LESSONS[cur];
-  $('#lesson').innerHTML=`<div class="lesson-top"><span class="chip${L.level==='Avancé'?' hot':''}">${L.level}</span><span class="muted">${L.tasks.length?`Leçon ${cur+1} sur ${LESSONS.length-1}`:'Mode libre'}</span></div>
+function renderSidebar(){const lessons=LESSONS.filter(l=>l.kind!=='defi'),chals=LESSONS.filter(l=>l.kind==='defi');
+  const ld=lessons.filter(l=>l.tasks.length&&P.done[l.id]).length,cd=chals.filter(c=>P.ch[c.id]).length,defis=sideTab==='defis';
+  Site.showXp(P.xp);
+  $('#tabLecons').setAttribute('aria-selected',String(!defis));$('#tabDefis').setAttribute('aria-selected',String(defis));
+  $('#sideTitle').textContent=defis?'Défis':'Parcours';
+  $('#progTxt').textContent=defis?`${cd} / ${chals.length}`:`${ld} / ${NB_LESSONS}`;
+  $('#progBar').style.width=(defis?cd/chals.length:ld/NB_LESSONS)*100+'%';
+  $('#lessonList').innerHTML=(defis?chals:lessons).map(l=>{const i=LESSONS.indexOf(l),done=defis?P.ch[l.id]:P.done[l.id];
+    const num=done?'✓':defis?DIFF[l.diff].n:(l.tasks.length?i+1:'∞');
+    return `<li><button type="button" class="lbtn${i===cur?' active':''}${done?' done':''}${defis?' d-'+l.diff:''}" data-i="${i}"${i===cur?' aria-current="step"':''}><span class="num">${num}</span><span><span class="lt">${esc(l.title)}</span><span class="ls">${defis?`${DIFF[l.diff].label} · +${l.xp} XP`:esc(l.short)}</span></span></button></li>`}).join('')}
+function renderLesson(){const L=LESSONS[cur];if(L.kind==='defi')return renderChallenge(L);
+  $('#lesson').innerHTML=`<div class="lesson-top"><span class="chip${L.level==='Avancé'?' hot':''}">${L.level}</span><span class="muted">${L.tasks.length?`Leçon ${cur+1} sur ${NB_LESSONS}`:'Mode libre'}</span></div>
   <h1>${esc(L.title)}</h1><p class="lede">${esc(L.summary)}</p>
   <details class="theory" open><summary>Comprendre</summary><div class="prose">${L.theory}</div></details>
   <div class="missions">${L.tasks.length?`<div class="mh"><h2>Missions</h2><span class="muted" id="mcount"></span></div><ol id="tasks"></ol><div id="banner"></div>`:
    `<div class="mh"><h2>Idées à essayer</h2></div><ul class="ideas">${L.ideas.map(c=>`<li><span class="hint"><span class="ins">À taper</span>${esc(c)}</span></li>`).join('')}</ul>`}</div>
-  <div class="lesson-actions"><button class="gbtn" type="button" id="btnRestart">Recommencer</button>${cur<LESSONS.length-1?`<button class="gbtn primary" type="button" id="btnNext">Leçon suivante</button>`:''}</div>`;
-  $('#btnRestart').onclick=()=>startLesson(cur);const n=$('#btnNext');if(n)n.onclick=()=>{startLesson(cur+1);window.scrollTo({top:0,behavior:'smooth'})};
+  <div class="lesson-actions"><button class="gbtn" type="button" id="btnRestart">Recommencer</button>${nextOf(cur)>=0?`<button class="gbtn primary" type="button" id="btnNext">Leçon suivante</button>`:''}</div>`;
+  $('#btnRestart').onclick=()=>startLesson(cur);const n=$('#btnNext');if(n)n.onclick=()=>{startLesson(nextOf(cur));window.scrollTo({top:0,behavior:'smooth'})};
   renderTasks(false)}
 function renderTasks(animate){const L=LESSONS[cur];const el=$('#tasks');if(!el)return;
   el.innerHTML=L.tasks.map((t,i)=>{const st=i<taskIdx?'done':i===taskIdx?'current':'todo';
@@ -792,6 +918,34 @@ function renderTasks(animate){const L=LESSONS[cur];const el=$('#tasks');if(!el)r
   $('#mcount').textContent=`${Math.min(taskIdx,L.tasks.length)} / ${L.tasks.length}`;
   $('#banner').innerHTML=taskIdx>=L.tasks.length?`<div class="done-banner"><span class="seal" aria-hidden="true">✓</span><b>Leçon réussie</b><span class="muted">${L.xp?`+${L.xp} XP. `:''}Explorez encore ou passez à la suite.</span></div>`:'';
   const nb=$('#btnNext');if(nb)nb.classList.toggle('primary',taskIdx>=L.tasks.length)}
+const NB_LESSONS=LESSONS.filter(l=>l.kind!=='defi'&&l.tasks.length).length;
+const nextOf=i=>{const k=LESSONS[i].kind==='defi';return LESSONS.findIndex((l,j)=>j>i&&(l.kind==='defi')===k)};
+/* ----- Défis : affichage, objectifs en direct, chronomètre ----- */
+function renderChallenge(L){const d=DIFF[L.diff],nx=nextOf(cur);
+  $('#lesson').innerHTML=`<div class="lesson-top"><span class="chip diff d-${L.diff}"><span class="dmeter" aria-hidden="true"><i></i><i></i><i></i><i></i></span>${d.label}</span><span class="xp-reward">+${L.xp} XP</span></div>
+  <h1>${esc(L.title)}</h1><p class="lede">${esc(L.brief)}</p>
+  <div class="chal-stats"><span><b id="chCmds">0</b> commande<span id="chS">s</span></span><span>Temps <b id="chTime">0:00</b></span>${P.ch[L.id]?'<span class="chip ok-chip">Déjà réussi</span>':''}</div>
+  <div class="missions"><div class="mh"><h2>Objectifs</h2><span class="muted" id="mcount"></span></div><ul class="goals" id="goals"></ul><div id="banner"></div></div>
+  <div class="hint-box" id="hintBox"></div>
+  <div class="lesson-actions"><button class="gbtn" type="button" id="btnRestart">Recommencer</button>${nx>=0?'<button class="gbtn" type="button" id="btnNext">Défi suivant</button>':'<a class="gbtn" href="defis.html">Tous les défis</a>'}</div>`;
+  $('#btnRestart').onclick=()=>startLesson(cur);const n=$('#btnNext');if(n)n.onclick=()=>{startLesson(nx);window.scrollTo({top:0,behavior:'smooth'})};
+  renderHint(L);renderGoals(goalStates(L))}
+function renderHint(L){const box=$('#hintBox');if(!box)return;
+  box.innerHTML=chHint?`<p class="hint-text"><b>Indice</b> ${esc(L.hint)}</p>`:'<button class="reveal" type="button" id="btnHint">Afficher l\'indice</button>';
+  const b=$('#btnHint');if(b)b.onclick=()=>{chHint=true;renderHint(L);cmd.focus({preventScroll:true})}}
+const goalStates=L=>L.goals.map(g=>{try{return !!g.ok()}catch(e){return false}});
+function renderGoals(st){const L=LESSONS[cur],el=$('#goals');if(!el)return;
+  el.innerHTML=L.goals.map((g,i)=>`<li class="goal${st[i]?' ok':''}${st[i]&&!lastGoals[i]?' pop':''}"><span class="mk" aria-hidden="true"></span><span>${g.t}</span></li>`).join('');
+  lastGoals=st;$('#mcount').textContent=`${st.filter(Boolean).length} / ${st.length}`}
+const fmtTime=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+function tickTimer(){const el=$('#chTime');if(el&&LESSONS[cur].kind==='defi'&&!chDone)el.textContent=fmtTime(Math.floor((performance.now()-chStart)/1000))}
+function evaluateChallenge(L){const st=goalStates(L);renderGoals(st);const n=S.hist.length,c=$('#chCmds');if(c){c.textContent=n;$('#chS').textContent=n>1?'s':''}
+  if(chDone||!st.every(Boolean))return;
+  tickTimer();chDone=true;clearInterval(chTimer);const secs=Math.round((performance.now()-chStart)/1000),first=!P.ch[L.id];
+  if(first){P.ch[L.id]=true;P.xp+=L.xp;saveP();renderSidebar();Site.account.sync().then(p=>{if(p)toast('Classement mis à jour',`${p.pseudo} · ${p.xp} XP`,'ok')}).catch(()=>{})}
+  $('#banner').innerHTML=`<div class="done-banner"><span class="seal" aria-hidden="true">✓</span><b>Défi réussi</b><span class="muted">${n} commande${n>1?'s':''} en ${fmtTime(secs)}. ${first?`+${L.xp} XP.`:'Déjà réussi : pas de nouveaux XP, mais bravo.'}</span></div>`;
+  const nb=$('#btnNext');if(nb)nb.classList.add('primary');
+  Site.celebrate();toast('Défi réussi',first?`+${L.xp} XP · ${L.title}`:`${L.title} · déjà réussi`,'ok')}
 function renderPrompt(){let p='vous@atelier ~/projet';if(S.repo){const r=S.repo;let b=r.head.type==='branch'?r.head.name:r.head.id;if(r.merging)b+='|MERGING';p+=` (${b})`}$('#prompt').textContent=p+' $'}
 function fileBtn(f,badge,gone,title,edit){const inner=`<span class="badge ${badge}">${badge==='ok'?'✓':badge}</span><span class="fn">${esc(f)}</span>`;
   return edit?`<button type="button" class="file${gone?' gone':''}" data-file="${esc(f)}" title="${esc(title)} · cliquer pour éditer">${inner}</button>`:`<div class="file${gone?' gone':''}" title="${esc(title)}">${inner}</div>`}
@@ -911,6 +1065,7 @@ $('#term').addEventListener('click',e=>{if(!e.target.closest('button')&&!window.
 $('#btnClear').onclick=()=>{outEl.innerHTML='';cmd.focus()};
 document.addEventListener('click',e=>{
   const rv=e.target.closest('[data-reveal]');if(rv){shown.add(cur+':'+rv.dataset.reveal);renderTasks(false);cmd.focus({preventScroll:true});return}
+  const tb=e.target.closest('[data-tab]');if(tb){sideTab=tb.dataset.tab;renderSidebar();return}
   const l=e.target.closest('.lbtn');if(l){startLesson(+l.dataset.i);return}
   const nd=e.target.closest('.node[data-id]');if(nd){const c=C(nd.dataset.id);if(c)toast('Commit '+c.id,`${c.msg.split('\n')[0]} · ${c.author}. Pour voir ses changements, tapez git show ${c.id}.`);return}
   const f=e.target.closest('.file');if(f){openEditor(f.dataset.file);return}});
@@ -940,7 +1095,7 @@ document.querySelectorAll('.overlay').forEach(ov=>ov.addEventListener('click',e=
 /* ----- Réinitialiser la progression (confirmation dans la page) ----- */
 const rb=$('#btnResetAll');let armT=0;const rbLabel=rb.textContent;
 rb.onclick=()=>{if(!rb.classList.contains('armed')){rb.classList.add('armed');rb.textContent='Confirmer : tout effacer ?';armT=setTimeout(()=>{rb.classList.remove('armed');rb.textContent=rbLabel},4000);return}
-  clearTimeout(armT);rb.classList.remove('armed');rb.textContent=rbLabel;P={done:{},xp:0};saveP();startLesson(0);toast('Progression effacée',Site.account.state().user?'Sur ce navigateur seulement : votre compte garde vos leçons terminées.':'Vous repartez de la leçon 1.')};
+  clearTimeout(armT);rb.classList.remove('armed');rb.textContent=rbLabel;P={done:{},xp:0,ch:{}};saveP();startLesson(0);toast('Progression effacée',Site.account.state().user?'Sur ce navigateur seulement : votre compte garde vos leçons terminées.':'Vous repartez de la leçon 1.')};
 
 
 /* ----- Aide-mémoire (fenêtre rapide, sans quitter l'atelier) ----- */
@@ -959,7 +1114,7 @@ let start=byHash();
 if(start<0){start=0;try{const s=+localStorage.getItem('atelier-git-current');if(s>=0&&s<LESSONS.length)start=s}catch(e){}}
 startLesson(start);
 /* Quand le compte apporte des leçons terminées ailleurs, on recharge la progression. */
-Site.account.onChange(()=>{const np=Site.readProgress();if(JSON.stringify(np.done)!==JSON.stringify(P.done)){P=np;renderSidebar()}});
+Site.account.onChange(()=>{const np=Site.readProgress();if(JSON.stringify([np.done,np.ch])!==JSON.stringify([P.done,P.ch])){P=np;renderSidebar()}});
 addEventListener('hashchange',()=>{const i=byHash();if(i>=0&&i!==cur)startLesson(i)});
 window.__atelier={TypeFX};
 })();

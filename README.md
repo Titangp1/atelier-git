@@ -5,7 +5,7 @@ Réalisé par **Titan_gp1**.
 
 **Essayer en ligne : https://titangp1.github.io/atelier-git/**
 
-Version actuelle : **2.1.0**
+Version actuelle : **2.2.0**
 
 ## Ce que contient l'atelier
 
@@ -32,6 +32,7 @@ Le copier-coller est désactivé et rien ne s'écrit tout seul dans le terminal 
 | Accueil | `index.html` | Présentation, démo animée, votre progression, le parcours des 11 leçons |
 | Atelier | `atelier.html` | Les leçons, le terminal simulé, le graphe et les trois zones. Chaque leçon a son adresse, par exemple `atelier.html#branches` |
 | Aide-mémoire | `aide-memoire.html` | Toutes les commandes, avec une recherche |
+| Défis | `defis.html` | Onze défis de Facile à Expert (30 à 150 XP) : un objectif, aucune commande imposée |
 | Classement | `classement.html` | Les joueurs rangés par XP, avec votre rang |
 | Compte | `compte.html` | Inscription, connexion, pseudo, suppression du compte |
 | À propos | `a-propos.html` | Crédits, historique des versions, code source |
@@ -60,8 +61,9 @@ Mise en place, dans la [console Firebase](https://console.firebase.google.com) :
 6. Coller l'objet `firebaseConfig` dans `assets/config.js`, à la place de `null`.
 
 Sécurité : la configuration Web de Firebase est publique par conception. Les règles Firestore vérifient chaque écriture :
-chacun ne modifie que son propre profil, les XP doivent correspondre exactement aux leçons terminées (590 XP au maximum),
-la liste des leçons ne peut que grandir et chaque pseudo est unique. Aucun email n'est stocké dans le classement.
+chacun ne modifie que son propre profil, les XP doivent correspondre exactement aux leçons et défis réussis (1460 XP au maximum),
+ces listes ne peuvent que grandir et chaque pseudo est unique. Après chaque modification de `firebase/firestore.rules`,
+il faut recoller le fichier dans *Firestore → Règles* et publier. Aucun email n'est stocké dans le classement.
 
 ## Commandes simulées
 
@@ -73,6 +75,16 @@ la liste des leçons ne peut que grandir et chaque pseudo est unique. Aucun emai
 Les modes interactifs (`git add -p`, `git rebase -i`) ne sont pas simulés : l'atelier explique ce qu'ils font.
 
 ## Historique des versions
+
+### 2.2.0
+
+- Onze **défis** de Facile à Expert, de 30 à 150 XP chacun : un dépôt préparé, un objectif, un indice et un chronomètre,
+  mais aucune commande imposée. Ils se jouent dans l'atelier (onglet « Défis ») et ont leur propre page.
+- Le classement compte les défis (1460 XP au total) et affiche une colonne Défis.
+- Le nombre de joueurs inscrits s'affiche dans le pied de page de toutes les pages et sur l'accueil.
+- Animations : transitions entre les pages, apparition des sections au défilement, chiffres qui défilent,
+  confettis à chaque réussite, « +XP » qui s'envole, lignes du classement en cascade.
+- Règles Firestore mises à jour pour vérifier les XP des défis : à republier dans la console Firebase.
 
 ### 2.1.0
 

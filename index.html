@@ -31,7 +31,7 @@
     <div class="splash-bar"><i id="splashBar"></i></div>
     <div class="splash-status" id="splashStatus">$ git init</div>
   </div>
-  <div class="splash-foot"><span class="ver">v2.1.0</span> · Réalisé par <b>Titan_gp1</b></div>
+  <div class="splash-foot"><span class="ver">v2.2.0</span> · Réalisé par <b>Titan_gp1</b></div>
 </div>
 
 <div class="scene" aria-hidden="true">
@@ -54,11 +54,12 @@
       <span class="brand-mark" aria-hidden="true">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><circle cx="6" cy="18" r="2.6"/><circle cx="6" cy="6" r="2.6"/><circle cx="18" cy="9" r="2.6"/><path d="M6 8.6v6.8M18 11.6c0 4-6 3-11 5"/></svg>
       </span>
-      <span><b>Atelier Git <span class="ver" title="Version de l'application">v2.1.0</span></b><small>Apprendre Git en tapant de vraies commandes</small></span>
+      <span><b>Atelier Git <span class="ver" title="Version de l'application">v2.2.0</span></b><small>Apprendre Git en tapant de vraies commandes</small></span>
     </a>
     <nav class="site-nav" aria-label="Pages du site">
       <a href="index.html" aria-current="page">Accueil</a>
       <a href="atelier.html">Atelier</a>
+      <a href="defis.html">Défis</a>
       <a href="classement.html">Classement</a>
       <a href="aide-memoire.html">Aide-mémoire</a>
       <a href="a-propos.html">À propos</a>
@@ -85,6 +86,12 @@
       <div class="demo-out" id="demoOut" aria-hidden="true"></div>
     </div>
   </section>
+  <section class="stats glass" aria-label="L'Atelier Git en chiffres">
+    <div class="stat"><b data-players-count>—</b><span>joueurs inscrits</span></div>
+    <div class="stat"><b data-count="11">11</b><span>leçons guidées</span></div>
+    <div class="stat"><b data-count="11">11</b><span>défis à relever</span></div>
+    <div class="stat"><b data-count="1460">1460</b><span>XP à gagner</span></div>
+  </section>
   <section class="resume glass" aria-labelledby="resumeT">
     <div class="resume-info"><h2 class="title" id="resumeT">Votre progression</h2><p id="resumeText">Vous n'avez pas encore commencé.</p><div class="bar"><i id="resumeBar"></i></div><p class="acct-line" id="resumeAcct" hidden></p></div>
     <a class="gbtn primary" id="resumeGo" href="atelier.html">Commencer la leçon 1</a>
@@ -93,6 +100,15 @@
     <h2 class="title" id="parcoursT">Le parcours</h2>
     <p class="intro">Onze leçons, des premiers commits jusqu'au rebase et au reflog, plus un bac à sable. Chacune se termine en quelques minutes.</p>
     <ol class="lgrid" id="lgrid"></ol>
+  </section>
+  <section class="glass section-pad defis-teaser" aria-labelledby="defisT">
+    <div>
+      <p class="eyebrow">Nouveau</p>
+      <h2 class="title" id="defisT">Les défis</h2>
+      <p class="intro">Onze défis de Facile à Expert, de 30 à 150 XP chacun. <span id="homeDefis"></span></p>
+    </div>
+    <div class="dlevels" aria-hidden="true"><span class="dl d-facile">Facile</span><span class="dl d-moyen">Moyen</span><span class="dl d-difficile">Difficile</span><span class="dl d-expert">Expert</span></div>
+    <a class="gbtn primary" href="defis.html">Voir les défis</a>
   </section>
   <section class="glass section-pad" aria-labelledby="howT">
     <h2 class="title" id="howT">Comment ça marche</h2>
@@ -104,11 +120,13 @@
   </section>
 </main>
   <footer class="credit">
-    <span>Atelier Git <span class="ver">v2.1.0</span></span>
+    <span>Atelier Git <span class="ver">v2.2.0</span></span>
     <span aria-hidden="true">·</span>
     <span>Réalisé par <b>Titan_gp1</b></span>
     <span aria-hidden="true">·</span>
     <span><a href="https://github.com/Titangp1/atelier-git" target="_blank" rel="noopener">Code source sur GitHub</a></span>
+    <span aria-hidden="true" data-players-sep hidden>·</span>
+    <span data-players hidden></span>
   </footer>
 </div>
 <div class="toasts" id="toasts" aria-live="polite"></div>

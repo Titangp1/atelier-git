@@ -3,10 +3,26 @@
 'use strict';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const APP_VERSION='2.1.0';
+const APP_VERSION='2.2.0';
 
 /* Liste des leçons pour l'accueil (générée depuis atelier.js au moment de la construction). */
 const LESSONS_META=[{"id": "premier", "title": "Votre premier dépôt", "short": "init · add · commit", "level": "Débutant", "xp": 50}, {"id": "zones", "title": "Les trois zones", "short": "status · diff · add", "level": "Débutant", "xp": 50}, {"id": "historique", "title": "Voyager dans l'historique", "short": "log · restore · reset", "level": "Débutant", "xp": 50}, {"id": "branches", "title": "Les branches", "short": "branch · switch", "level": "Intermédiaire", "xp": 50}, {"id": "fusion", "title": "Fusionner des branches", "short": "merge", "level": "Intermédiaire", "xp": 50}, {"id": "conflit", "title": "Résoudre un conflit", "short": "merge · conflit", "level": "Intermédiaire", "xp": 60}, {"id": "distant", "title": "Travailler à plusieurs", "short": "remote · push · pull", "level": "Avancé", "xp": 60}, {"id": "stash", "title": "Mettre de côté", "short": "stash", "level": "Avancé", "xp": 50}, {"id": "rebase", "title": "Un historique linéaire", "short": "rebase", "level": "Avancé", "xp": 60}, {"id": "enquete", "title": "Ignorer et enquêter", "short": ".gitignore · blame", "level": "Intermédiaire", "xp": 50}, {"id": "reparer", "title": "Réparer ses erreurs", "short": "amend · reflog · cherry-pick", "level": "Avancé", "xp": 60}, {"id": "bac", "title": "Bac à sable", "short": "libre", "level": "Libre", "xp": 0}];
+
+/* Défis : identifiants, titres, difficulté et XP. Doit rester aligné sur firebase/firestore.rules. */
+const CHALLENGES_META=[
+ {id:'d-premier-pas',title:'Premier pas',short:'Créer un dépôt propre en partant de rien',diff:'facile',xp:30},
+ {id:'d-oups',title:'Oups, pas ce fichier',short:'Retirer un fichier secret de l\'index',diff:'facile',xp:30},
+ {id:'d-version',title:'Version 1.0',short:'Étiqueter le bon commit',diff:'facile',xp:30},
+ {id:'d-menage',title:'Grand ménage',short:'Faire ignorer les fichiers inutiles',diff:'moyen',xp:60},
+ {id:'d-sauvetage',title:'Sauvetage de branche',short:'Ressusciter une branche supprimée',diff:'moyen',xp:60},
+ {id:'d-squash',title:'Une seule histoire',short:'Trois brouillons, un seul commit',diff:'moyen',xp:60},
+ {id:'d-double-conflit',title:'Double conflit',short:'Deux fichiers en conflit à résoudre',diff:'difficile',xp:100},
+ {id:'d-bon-commit',title:'Le bon commit',short:'Récupérer une seule correction',diff:'difficile',xp:100},
+ {id:'d-amend',title:'Message honteux',short:'Réparer le dernier commit sans en ajouter',diff:'difficile',xp:100},
+ {id:'d-course',title:'Course contre Léa',short:'Publier sans commit de fusion',diff:'expert',xp:150},
+ {id:'d-enquete',title:'Qui a cassé le site ?',short:'Trouver et annuler le commit coupable',diff:'expert',xp:150},
+];
+const DIFFS={facile:{label:'Facile',n:1},moyen:{label:'Moyen',n:2},difficile:{label:'Difficile',n:3},expert:{label:'Expert',n:4}};
 
 /* ----- Aide-mémoire : données communes à la fenêtre de l'atelier et à la page dédiée ----- */
 const CHEAT=[
@@ -35,11 +51,45 @@ function toast(title,body,kind){const box=$('#toasts');if(!box)return;const t=do
   box.appendChild(t);setTimeout(()=>{t.style.transition='opacity .4s,transform .4s';t.style.opacity='0';t.style.transform='translateY(10px)';setTimeout(()=>t.remove(),450)},4200)}
 
 /* ----- Progression gardée dans le navigateur ----- */
-function readProgress(){let P={done:{},xp:0};try{const raw=localStorage.getItem('atelier-git-progress');if(raw)P=Object.assign(P,JSON.parse(raw))}catch(e){}return P}
+function readProgress(){let P={done:{},xp:0,ch:{}};try{const raw=localStorage.getItem('atelier-git-progress');if(raw)P=Object.assign(P,JSON.parse(raw))}catch(e){}P.ch=P.ch||{};return P}
+
+/* ----- Animations partagées ----- */
+const reduceMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* Fait défiler un nombre jusqu'à sa valeur. */
+function countUp(el,to,dur=1100,from=0){if(!el)return;el.textContent=to; /* la valeur finale d'abord : visible même si l'animation ne tourne pas */
+  if(reduceMotion()||document.hidden||from===to)return;
+  const t0=performance.now(),ease=k=>1-Math.pow(1-k,3);
+  const step=t=>{const k=Math.min(1,(t-t0)/dur);el.textContent=Math.round(from+(to-from)*ease(k));if(k<1)requestAnimationFrame(step)};requestAnimationFrame(step)}
+/* Compteur d'XP de la barre du haut : défile et affiche « +N » quand il monte. */
+let shownXp=null;
+function showXp(n){const el=$('#xp');if(!el)return;if(shownXp===null||n<=shownXp){el.textContent=n;shownXp=n;return}
+  const from=shownXp;shownXp=n;countUp(el,n,900,from);if(reduceMotion())return;
+  const box=el.closest('.xp');if(box){const p=document.createElement('span');p.className='xp-pop';p.textContent='+'+(n-from);box.appendChild(p);setTimeout(()=>p.remove(),1300)}}
+/* Pluie de confettis aux couleurs du graphe, pour une leçon ou un défi réussi. */
+function celebrate(){if(reduceMotion()||document.hidden)return;
+  const cv=document.createElement('canvas'),dpr=Math.min(2,devicePixelRatio||1),W=innerWidth,H=innerHeight;cv.className='confetti';cv.width=W*dpr;cv.height=H*dpr;cv.setAttribute('aria-hidden','true');document.body.appendChild(cv);
+  const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);const cs=getComputedStyle(document.documentElement);
+  const cols=['--lane0','--lane1','--lane2','--lane3','--lane4'].map(v=>cs.getPropertyValue(v).trim()||'#e8492b');
+  const parts=Array.from({length:150},()=>({x:W/2+(Math.random()-.5)*160,y:H*.32,vx:(Math.random()-.5)*15,vy:-Math.random()*14-5,w:6+Math.random()*7,h:3+Math.random()*4,r:Math.random()*6.3,vr:(Math.random()-.5)*.45,c:cols[Math.random()*cols.length|0]}));
+  const t0=performance.now();const step=t=>{const k=(t-t0)/1700;ctx.clearRect(0,0,W,H);
+    for(const p of parts){p.vy+=.4;p.vx*=.985;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;ctx.save();ctx.globalAlpha=Math.max(0,1-k*k);ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore()}
+    if(k<1)requestAnimationFrame(step);else cv.remove()};requestAnimationFrame(step);setTimeout(()=>cv.remove(),2500)}
+/* Apparition des blocs au défilement (pages de contenu). Sans JavaScript, tout reste visible. */
+function reveal(){if(document.body.dataset.page==='atelier'||!('IntersectionObserver' in window)||reduceMotion())return;
+  /* Ce qui est déjà à l'écran au chargement reste visible ; seuls les blocs plus bas apparaissent au défilement. */
+  const all=[...document.querySelectorAll('.page-main>section,.lgrid li,.steps li,.stat,.dcard,.changelog>div,.facts>div')].filter(e=>!e.classList.contains('rv'));
+  const fold=innerHeight*.92,els=all.filter(e=>e.getBoundingClientRect().top>fold);
+  all.filter(e=>!els.includes(e)).forEach(e=>e.querySelectorAll('[data-count]').forEach(c=>{const to=+c.dataset.count;if(to)countUp(c,to)}));
+  if(!els.length)return;
+  let fired=false;const io=new IntersectionObserver(es=>{fired=true;let k=0;for(const e of es){if(!e.isIntersecting)continue;const el=e.target;
+      el.style.transitionDelay=Math.min(k++*70,490)+'ms';el.classList.add('rv-in');io.unobserve(el);setTimeout(()=>{el.style.transitionDelay=''},1300);
+      el.querySelectorAll('[data-count]').forEach(c=>{const to=+c.dataset.count;if(to)countUp(c,to)})}},{rootMargin:'0px 0px -5% 0px',threshold:.06});
+  els.forEach(el=>{el.classList.add('rv');io.observe(el)});
+  setTimeout(()=>{if(!fired)els.forEach(el=>el.classList.add('rv-in'))},2500)}
 
 /* ----- Version, XP, thème ----- */
 document.querySelectorAll('.ver').forEach(v=>v.textContent='v'+APP_VERSION);
-{const xp=$('#xp');if(xp)xp.textContent=readProgress().xp}
+showXp(readProgress().xp);
 {const bt=$('#btnTheme');if(bt)bt.onclick=()=>{const t=document.documentElement.dataset.theme;const dark=t?t==='dark':matchMedia('(prefers-color-scheme: dark)').matches;const next=dark?'light':'dark';
   document.documentElement.dataset.theme=next;try{localStorage.setItem('atelier-git-theme',next)}catch(e){}}}
 
@@ -165,12 +215,14 @@ setFx(fxLevel,false);
 const Account=(()=>{
   const CFG=window.ATELIER_CONFIG||{},FB=CFG.firebase||null,SDK='https://www.gstatic.com/firebasejs/10.12.2/';
   let enabled=!!(FB&&FB.apiKey&&FB.projectId),api=null,user=null,profile=null,loading=enabled,lastError=null;
-  const subs=new Set(),PSEUDO=/^[A-Za-z0-9_.-]{3,20}$/,KNOWN=new Set(LESSONS_META.filter(l=>l.id!=='bac').map(l=>l.id));
+  const subs=new Set(),PSEUDO=/^[A-Za-z0-9_.-]{3,20}$/,KNOWN=new Set(LESSONS_META.filter(l=>l.id!=='bac').map(l=>l.id)),KNOWN_CH=new Set(CHALLENGES_META.map(c=>c.id));
   const PSEUDO_MSG='Le pseudo doit faire 3 à 20 caractères : lettres sans accent, chiffres, point, tiret ou tiret bas.';
   const state=()=>({enabled,loading,user,profile,needsPseudo:!!(user&&!profile&&!loading&&!lastError),error:lastError});
   const emit=()=>{renderChip();subs.forEach(f=>{try{f(state())}catch(e){console.error(e)}})};
   const xpOf=ids=>ids.reduce((s,id)=>{const l=LESSONS_META.find(x=>x.id===id);return s+(l?l.xp:0)},0);
   const localDone=()=>{const P=readProgress();return Object.keys(P.done).filter(k=>P.done[k]&&KNOWN.has(k)).sort()};
+  const chXp=ids=>ids.reduce((s,id)=>{const c=CHALLENGES_META.find(x=>x.id===id);return s+(c?c.xp:0)},0),xpTotal=(d,c)=>xpOf(d)+chXp(c);
+  const localCh=()=>{const P=readProgress();return Object.keys(P.ch).filter(k=>P.ch[k]&&KNOWN_CH.has(k)).sort()};
   const FR={'auth/invalid-credential':'Email ou mot de passe incorrect.','auth/invalid-login-credentials':'Email ou mot de passe incorrect.',
     'auth/wrong-password':'Email ou mot de passe incorrect.','auth/user-not-found':'Email ou mot de passe incorrect.',
     'auth/email-already-in-use':'Un compte existe déjà avec cet email.','auth/weak-password':'Le mot de passe doit faire au moins 6 caractères.',
@@ -208,10 +260,11 @@ const Account=(()=>{
       recentLogin:()=>{const t=auth.currentUser&&auth.currentUser.metadata.lastSignInTime;return !!t&&Date.now()-Date.parse(t)<4.5*60e3},
       getProfile:async uid=>{const s=await F.getDoc(prof(uid));return s.exists()?s.data():null},
       pseudoTaken:async p=>(await F.getDoc(ps(p))).exists(),
-      createProfile:async(uid,pseudo,done)=>{const b=F.writeBatch(db),now=F.serverTimestamp();
-        b.set(prof(uid),{pseudo,pseudoLower:pseudo.toLowerCase(),done,xp:xpOf(done),lessonsDone:done.length,createdAt:now,updatedAt:now});
+      /* Le champ challenges n'est envoyé que s'il y a des défis : les anciennes règles restent compatibles. */
+      createProfile:async(uid,pseudo,done,ch=[])=>{const b=F.writeBatch(db),now=F.serverTimestamp();
+        b.set(prof(uid),{pseudo,pseudoLower:pseudo.toLowerCase(),done,...(ch.length?{challenges:ch}:{}),xp:xpTotal(done,ch),lessonsDone:done.length,createdAt:now,updatedAt:now});
         b.set(ps(pseudo),{uid});await b.commit()},
-      updateDone:async(uid,done)=>{await F.updateDoc(prof(uid),{done,xp:xpOf(done),lessonsDone:done.length,updatedAt:F.serverTimestamp()})},
+      updateDone:async(uid,done,ch=[])=>{await F.updateDoc(prof(uid),{done,...(ch.length?{challenges:ch}:{}),xp:xpTotal(done,ch),lessonsDone:done.length,updatedAt:F.serverTimestamp()})},
       changePseudo:async(uid,old,pseudo)=>{const b=F.writeBatch(db);
         b.update(prof(uid),{pseudo,pseudoLower:pseudo.toLowerCase(),updatedAt:F.serverTimestamp()});
         if(old.toLowerCase()!==pseudo.toLowerCase()){b.set(ps(pseudo),{uid});b.delete(ps(old))}await b.commit()},
@@ -220,7 +273,7 @@ const Account=(()=>{
       countAbove:async xp=>(await F.getCountFromServer(F.query(col,F.where('xp','>',xp)))).data().count,
       countAll:async()=>(await F.getCountFromServer(col)).data().count};
   }
-  const norm=r=>r?{pseudo:r.pseudo,xp:r.xp||0,lessons_done:r.lessonsDone||0,done:r.done||[]}:null;
+  const norm=r=>r?{pseudo:r.pseudo,xp:r.xp||0,lessons_done:r.lessonsDone||0,done:r.done||[],challenges:r.challenges||[],challenges_done:(r.challenges||[]).length}:null;
   const millis=t=>t&&typeof t.toMillis==='function'?t.toMillis():(t instanceof Date?t.getTime():+t||0);
 
   async function refresh(){if(!user){profile=null;return}try{profile=norm(await api.getProfile(user.id));lastError=null}catch(e){lastError=fr(e).message;profile=null}}
@@ -232,7 +285,7 @@ const Account=(()=>{
   const checkPseudo=p=>{p=String(p||'').trim();if(!PSEUDO.test(p))throw new Error(PSEUDO_MSG);return p};
   async function createFor(u,pseudo){
     if(await api.pseudoTaken(pseudo))throw new Error('Ce pseudo est déjà pris.');
-    try{await api.createProfile(u.id,pseudo,localDone())}catch(e){throw e.code==='permission-denied'?new Error('Ce pseudo vient d\'être pris. Choisissez-en un autre.'):fr(e)}
+    try{await api.createProfile(u.id,pseudo,localDone(),localCh())}catch(e){throw e.code==='permission-denied'?new Error('Ce pseudo vient d\'être pris. Choisissez-en un autre.'):fr(e)}
     user=u;await refresh();emit();return profile}
 
   async function signUp(email,password,pseudo){need();pseudo=checkPseudo(pseudo);email=String(email).trim();
@@ -252,11 +305,12 @@ const Account=(()=>{
 
   /* Fusionne la progression du navigateur et celle du compte : une leçon terminée d'un côté l'est des deux. */
   async function sync(){if(!api||!user)return null;if(!profile)await refresh();if(!profile)return null;
-    const P=readProgress(),remote=profile.done.filter(id=>KNOWN.has(id));let changed=false;
+    const P=readProgress(),remote=profile.done.filter(id=>KNOWN.has(id)),remoteCh=profile.challenges.filter(id=>KNOWN_CH.has(id));let changed=false;
     remote.forEach(id=>{if(!P.done[id]){P.done[id]=true;changed=true}});
-    if(changed){P.xp=xpOf(Object.keys(P.done).filter(k=>P.done[k]));try{localStorage.setItem('atelier-git-progress',JSON.stringify(P))}catch(e){}}
-    const all=[...new Set([...remote,...localDone()])].sort();
-    if(all.length!==remote.length){try{await api.updateDone(user.id,all)}catch(e){throw fr(e)}await refresh()}
+    remoteCh.forEach(id=>{if(!P.ch[id]){P.ch[id]=true;changed=true}});
+    if(changed){P.xp=xpTotal(Object.keys(P.done).filter(k=>P.done[k]),Object.keys(P.ch).filter(k=>P.ch[k]));try{localStorage.setItem('atelier-git-progress',JSON.stringify(P))}catch(e){}}
+    const all=[...new Set([...remote,...localDone()])].sort(),allCh=[...new Set([...remoteCh,...localCh()])].sort();
+    if(all.length!==remote.length||allCh.length!==remoteCh.length){try{await api.updateDone(user.id,all,allCh)}catch(e){throw fr(e)}await refresh()}
     emit();return profile}
   async function setPseudo(p){need();p=checkPseudo(p);if(!profile)throw new Error('Profil introuvable.');if(p===profile.pseudo)return profile;
     if(p.toLowerCase()!==profile.pseudo.toLowerCase()&&await api.pseudoTaken(p))throw new Error('Ce pseudo est déjà pris.');
@@ -269,7 +323,7 @@ const Account=(()=>{
       if(e.code==='auth/requires-recent-login')throw new Error('Votre profil est retiré du classement. Pour effacer aussi votre compte de connexion, déconnectez-vous, reconnectez-vous puis recommencez.');throw fr(e)}
     user=null;profile=null;emit()}
   async function leaderboard(limit=100){need();let rows;try{rows=await api.top(limit)}catch(e){throw fr(e)}
-    return rows.map(r=>({id:r.id,pseudo:r.pseudo,xp:r.xp||0,lessons_done:r.lessonsDone||0,updated:millis(r.updatedAt)}))
+    return rows.map(r=>({id:r.id,pseudo:r.pseudo,xp:r.xp||0,lessons_done:r.lessonsDone||0,challenges_done:(r.challenges||[]).length,updated:millis(r.updatedAt)}))
       .sort((a,b)=>b.xp-a.xp||a.updated-b.updated)}
   async function rankOf(xp){need();try{return (await api.countAbove(xp))+1}catch(e){throw fr(e)}}
   async function players(){need();try{return await api.countAll()}catch(e){throw fr(e)}}
@@ -279,11 +333,18 @@ const Account=(()=>{
       if(user&&profile){name.textContent=profile.pseudo;av.textContent=profile.pseudo[0].toUpperCase();a.classList.add('in');a.title='Votre compte'}
       else if(st.needsPseudo){name.textContent='Choisir un pseudo';av.textContent='';a.classList.add('in');a.title='Dernière étape : votre pseudo'}
       else{name.textContent='Se connecter';av.textContent='';a.classList.remove('in');a.title=enabled?'Créer un compte ou se connecter':'Les comptes arrivent bientôt'}}
-    const xp=$('#xp');if(xp)xp.textContent=readProgress().xp}
+    showXp(readProgress().xp)}
 
   return {init,state,onChange:f=>{subs.add(f);f(state());return()=>subs.delete(f)},signUp,signIn,signInGoogle,choosePseudo,resetPassword,signOut,
     sync,setPseudo,deleteAccount,leaderboard,rankOf,players,PSEUDO,_connect:connect /* utilisé par les tests locaux avec un faux service */}})();
 Account.init();
 
-window.Site={APP_VERSION,LESSONS_META,CHEAT,REFS,toast,esc,readProgress,renderCheat,Refract,setFx,account:Account};
+/* ----- Nombre de joueurs inscrits, dans le pied de page de toutes les pages ----- */
+(()=>{let asked=false;Account.onChange(st=>{if(asked||!st.enabled||st.loading)return;asked=true;
+  Account.players().then(n=>{document.querySelectorAll('[data-players]').forEach(el=>{el.hidden=false;el.innerHTML=`<b>${n}</b> joueur${n>1?'s':''} inscrit${n>1?'s':''}`;countUp(el.querySelector('b'),n,900)});
+    document.querySelectorAll('[data-players-sep]').forEach(el=>el.hidden=false);
+    document.querySelectorAll('[data-players-count]').forEach(el=>{el.dataset.count=n;countUp(el,n,1200);const l=el.nextElementSibling;if(l)l.textContent=n>1?'joueurs inscrits':'joueur inscrit'})}).catch(()=>{})})})();
+setTimeout(reveal,0);
+
+window.Site={APP_VERSION,LESSONS_META,CHALLENGES_META,DIFFS,CHEAT,REFS,toast,esc,readProgress,renderCheat,Refract,setFx,account:Account,celebrate,countUp,showXp,reveal};
 })();
