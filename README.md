@@ -5,7 +5,7 @@ Réalisé par **Titan_gp1**.
 
 **Essayer en ligne : https://titangp1.github.io/atelier-git/**
 
-Version actuelle : **1.4.0**
+Version actuelle : **2.0.0**
 
 ## Ce que contient l'atelier
 
@@ -23,12 +23,24 @@ Raccourcis : `/` pour revenir au terminal, `↑` `↓` pour l'historique des com
 Le bouton **Effets** règle le verre liquide : *légers* (le plus rapide), *équilibrés* (par défaut) ou *maximum*.
 Si la page saccade, l'atelier passe tout seul en effets légers.
 
-Le copier-coller est désactivé : les commandes s'apprennent en les tapant. Dans le terminal, `Ctrl+C` annule la ligne en cours, comme dans un vrai shell.
+Le copier-coller est désactivé et rien ne s'écrit tout seul dans le terminal : les commandes s'apprennent en les tapant. Un indice se dévoile à la demande si vous bloquez. Dans le terminal, `Ctrl+C` annule la ligne en cours, comme dans un vrai shell.
+
+## Les pages du site
+
+| Page | Fichier | Contenu |
+|---|---|---|
+| Accueil | `index.html` | Présentation, démo animée, votre progression, le parcours des 11 leçons |
+| Atelier | `atelier.html` | Les leçons, le terminal simulé, le graphe et les trois zones. Chaque leçon a son adresse, par exemple `atelier.html#branches` |
+| Aide-mémoire | `aide-memoire.html` | Toutes les commandes, avec une recherche |
+| À propos | `a-propos.html` | Crédits, historique des versions, code source |
+
+Le dossier `assets/` contient le style commun (`style.css`), le code partagé par toutes les pages (`site.js`),
+le moteur Git et les leçons (`atelier.js`) et le code de l'accueil et de l'aide-mémoire (`pages.js`).
 
 ## Lancer en local
 
-Tout tient dans `index.html` : double-cliquez dessus, il s'ouvre dans votre navigateur.
-Aucune installation n'est nécessaire. Seules les polices viennent d'Internet ; hors ligne, des polices système les remplacent.
+Double-cliquez sur `index.html` : le site s'ouvre dans votre navigateur, sans installation.
+Seules les polices viennent d'Internet ; hors ligne, des polices système les remplacent.
 
 ## Commandes simulées
 
@@ -40,6 +52,16 @@ Aucune installation n'est nécessaire. Seules les polices viennent d'Internet ; 
 Les modes interactifs (`git add -p`, `git rebase -i`) ne sont pas simulés : l'atelier explique ce qu'ils font.
 
 ## Historique des versions
+
+### 2.0.0
+
+- Le site passe en quatre pages : Accueil, Atelier, Aide-mémoire et À propos, avec une navigation commune.
+- Plus aucune commande ne s'écrit toute seule : les indices se dévoilent à la demande et se tapent à la main,
+  l'aide-mémoire et le graphe n'insèrent plus rien.
+- Effets maximum fiabilisés : flou plus fort et reflet qui suit la souris. La réfraction SVG des grands panneaux,
+  qui provoquait des défauts d'affichage, est retirée.
+- L'écran de chargement ne s'affiche qu'une fois par visite.
+- Chaque leçon a sa propre adresse (`atelier.html#branches`), et l'accueil propose de reprendre là où vous en étiez.
 
 ### 1.4.0
 
