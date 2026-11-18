@@ -51,6 +51,9 @@ function toast(title,body,kind){const box=$('#toasts');if(!box)return;const t=do
   box.appendChild(t);setTimeout(()=>{t.style.transition='opacity .4s,transform .4s';t.style.opacity='0';t.style.transform='translateY(10px)';setTimeout(()=>t.remove(),450)},4200)}
 
 /* ----- Progression gardée dans le navigateur ----- */
+/* Sans compte connecté, rien n'est gardé : la progression d'une visite précédente est effacée au chargement. */
+try{localStorage.removeItem('atelier-git-progress');if(!sessionStorage.getItem('atelier-git-owner'))sessionStorage.removeItem('atelier-git-progress')}catch(e){}
+const forget=()=>{try{sessionStorage.removeItem('atelier-git-progress');sessionStorage.removeItem('atelier-git-owner')}catch(e){}};
 function readProgress(){let P={done:{},xp:0,ch:{}};try{const raw=sessionStorage.getItem('atelier-git-progress');if(raw)P=Object.assign(P,JSON.parse(raw))}catch(e){}P.ch=P.ch||{};return P}
 
 /* ----- Animations partagées ----- */
@@ -278,7 +281,7 @@ const Account=(()=>{
 
   async function refresh(){if(!user){profile=null;return}try{profile=norm(await api.getProfile(user.id));lastError=null}catch(e){lastError=fr(e).message;profile=null}}
   function connect(a){api=a;enabled=true;loading=true;emit();let first=true;
-    api.onAuth(async u=>{user=u;await refresh();if(first){first=false;loading=false}emit();if(user&&profile)sync().catch(()=>{})})}
+    api.onAuth(async u=>{user=u;if(!u)forget();else try{sessionStorage.setItem('atelier-git-owner',u.id)}catch(e){}await refresh();if(first){first=false;loading=false}emit();if(user&&profile)sync().catch(()=>{})})}
   async function init(){renderChip();if(!enabled)return;
     try{connect(await firebaseApi())}catch(e){console.error(e);lastError='Le service de comptes ne répond pas. Réessayez plus tard.';loading=false;emit()}}
   const need=()=>{if(!api)throw new Error(enabled?'Le service de comptes se charge encore, réessayez dans un instant.':'Les comptes ne sont pas encore activés sur ce site.')};
@@ -301,7 +304,7 @@ const Account=(()=>{
   async function choosePseudo(p){need();if(!user)throw new Error('Connectez-vous d\'abord.');p=checkPseudo(p);return createFor(user,p)}
   async function resetPassword(email){need();email=String(email||'').trim();if(!/^\S+@\S+\.\S+$/.test(email))throw new Error('Indiquez d\'abord votre adresse email.');
     try{await api.resetPassword(email)}catch(e){if(e.code!=='auth/user-not-found')throw fr(e)}}
-  async function signOut(){need();await api.signOut();user=null;profile=null;try{sessionStorage.removeItem('atelier-git-progress')}catch(e){}emit()}
+  async function signOut(){need();await api.signOut();user=null;profile=null;forget();emit()}
 
   /* Fusionne la progression du navigateur et celle du compte : une leçon terminée d'un côté l'est des deux. */
   async function sync(){if(!api||!user)return null;if(!profile)await refresh();if(!profile)return null;
