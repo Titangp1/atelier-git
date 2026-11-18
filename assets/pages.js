@@ -2,7 +2,7 @@
 (()=>{
 'use strict';
 const $=s=>document.querySelector(s);
-const {esc,LESSONS_META,readProgress,renderCheat}=window.Site;
+const {esc,LESSONS_META,readProgress,renderCheat}=window.Site,NL=LESSONS_META.filter(l=>l.id!=='bac').length;
 const page=document.body.dataset.page;
 
 /* ===================== Accueil ===================== */
@@ -88,7 +88,7 @@ if(page==='compte'){const A=Site.account,show=(sel,on)=>{$(sel).hidden=!on};
       :'Créez un compte pour enregistrer votre progression et apparaître dans le classement.';
     if(st.needsPseudo&&!$('#choosePseudo').value&&st.user&&st.user.name)$('#choosePseudo').value=st.user.name.normalize('NFD').replace(/[^A-Za-z0-9_.-]/g,'').slice(0,20);
     if(inn){const p=st.profile;$('#pPseudo').textContent=p.pseudo;$('#pAvatar').textContent=p.pseudo[0].toUpperCase();$('#pEmail').textContent=st.user.email||'';
-      $('#pXp').textContent=p.xp+' XP';$('#pLessons').textContent=`${p.lessons_done} / 11`;
+      $('#pXp').textContent=p.xp+' XP';$('#pLessons').textContent=`${p.lessons_done} / ${NL}`;
       if(lastRankFor!==p.xp){lastRankFor=p.xp;$('#pRank').textContent='…';A.rankOf(p.xp).then(r=>{$('#pRank').textContent='#'+r}).catch(()=>{$('#pRank').textContent='—'})}
       if(document.activeElement!==$('#newPseudo'))$('#newPseudo').value=p.pseudo}});
   /* Onglets */
@@ -144,7 +144,7 @@ if(page==='classement'){const A=Site.account,body=$('#board'),msg=$('#boardState
       body.innerHTML=rows.map((r,i)=>{if(r.xp!==prev){rank=i+1;prev=r.xp}const mine=me&&r.id===me.id;
         return `<tr class="${mine?'me':''}" style="animation-delay:${Math.min(i*40,800)}ms"><td class="rk"><span class="rank${rank<=3?' r'+rank:''}">${rank}</span></td>
           <td class="who">${esc(r.pseudo)}${mine?' <span class="you">vous</span>':''}</td>
-          <td><span class="lessons"><span class="mini"><i style="width:${Math.round(r.lessons_done/11*100)}%"></i></span>${r.lessons_done} / 11</span></td>
+          <td><span class="lessons"><span class="mini"><i style="width:${Math.round(r.lessons_done/NL*100)}%"></i></span>${r.lessons_done} / ${NL}</span></td>
           <td class="dc">${r.challenges_done||0}</td>
           <td class="xp">${r.xp}</td></tr>`}).join('');
       say(rows.length?'':'Personne n\'est encore classé. Terminez une leçon pour prendre la première place !');
@@ -178,4 +178,12 @@ if(page==='defis'){const {CHALLENGES_META,DIFFS}=Site,P=readProgress(),grid=$('#
 /* ===================== Accueil : chiffres et défis ===================== */
 if(page==='accueil'){const P=readProgress(),cd=Site.CHALLENGES_META.filter(c=>P.ch[c.id]).length,dl=$('#homeDefis');
   if(dl)dl.textContent=cd?`Vous en avez réussi ${cd} sur ${Site.CHALLENGES_META.length}.`:'Aucun indice tout prêt, juste un objectif : à vous de trouver les commandes.'}
+
+if(page==='github'){const u=$('#ghUser'),r=$('#ghRepo'),SAFE_U=/[^A-Za-z0-9-]/g,SAFE_R=/[^A-Za-z0-9._-]/g;
+  const fill=()=>{const uv=u.value.replace(SAFE_U,'')||'pseudo',rv=r.value.replace(SAFE_R,'')||'mon-site';
+    document.querySelectorAll('[data-gh]').forEach(el=>{const k=el.dataset.gh;el.textContent=k==='user'?uv:k==='userlow'?uv.toLowerCase():rv})};
+  [u,r].forEach(i=>i.addEventListener('input',fill));fill();
+  document.querySelectorAll('.gh-os [data-os]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.gh-os [data-os]').forEach(x=>x.setAttribute('aria-selected',String(x===b)));
+    document.querySelectorAll('[data-os-panel]').forEach(p=>{p.hidden=p.dataset.osPanel!==b.dataset.os})});
+  if(/Mac/.test(navigator.platform))document.querySelector('.gh-os [data-os="mac"]').click();else if(/Linux/.test(navigator.platform)&&!/Android/.test(navigator.userAgent))document.querySelector('.gh-os [data-os="linux"]').click()}
 })();

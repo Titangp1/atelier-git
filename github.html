@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tuto GitHub · Atelier Git</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Tutoriel pas à pas pour relier un dossier à un dépôt GitHub : installer Git, se connecter, faire ses commits et les envoyer. Réalisé par Titan_gp1.">
+<meta name="author" content="Titan_gp1">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Atelier Git">
+<meta property="og:title" content="Tuto GitHub · Atelier Git">
+<meta property="og:description" content="Tutoriel pas à pas pour relier un dossier à un dépôt GitHub : installer Git, se connecter, faire ses commits et les envoyer. Réalisé par Titan_gp1.">
+<meta property="og:url" content="https://titangp1.github.io/atelier-git/github.html">
+<meta property="og:image" content="https://titangp1.github.io/atelier-git/assets/apercu.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="fr_FR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#e8492b">
+<script>(function(){try{var d=document.documentElement,t=localStorage.getItem('atelier-git-theme');if(t)d.dataset.theme=t;var f=localStorage.getItem('atelier-git-fx');if(f==='lite'||f==='max')d.classList.add('fx-'+f);if(sessionStorage.getItem('atelier-git-splash'))d.classList.add('no-splash');var o=JSON.parse(localStorage.getItem('atelier-git-opts')||'{}')||{};if(o.nosplash)d.classList.add('no-splash');if(o.calm)d.classList.add('calm');if(o.big)d.classList.add('big-text');if(o.nohints)d.classList.add('no-hints');if(o.term)d.dataset.term=o.term}catch(e){}})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-page="github">
+<div class="splash" id="splash" role="status" aria-live="polite" aria-label="Chargement de l'Atelier Git">
+  <div class="splash-card">
+    <svg class="splash-graph" viewBox="0 0 220 70" aria-hidden="true">
+      <path class="sg-line l0" d="M14 50 H206" pathLength="100"/>
+      <path class="sg-line l1" d="M54 50 C72 50 74 20 92 20 H150 C168 20 172 50 190 50" pathLength="100"/>
+      <circle class="sg-dot l0" cx="14" cy="50" r="7" style="animation-delay:.05s"/>
+      <circle class="sg-dot l0" cx="54" cy="50" r="7" style="animation-delay:.25s"/>
+      <circle class="sg-dot l1" cx="92" cy="20" r="7" style="animation-delay:.5s"/>
+      <circle class="sg-dot l0" cx="118" cy="50" r="7" style="animation-delay:.6s"/>
+      <circle class="sg-dot l1" cx="150" cy="20" r="7" style="animation-delay:.75s"/>
+      <circle class="sg-dot l0" cx="190" cy="50" r="9" style="animation-delay:1s"/>
+    </svg>
+    <div class="splash-title">Atelier Git</div>
+    <div class="splash-sub">Apprendre Git en tapant de vraies commandes</div>
+    <div class="splash-bar"><i id="splashBar"></i></div>
+    <div class="splash-status" id="splashStatus">$ git init</div>
+  </div>
+  <div class="splash-foot"><span class="ver">v2.3.0</span> · Réalisé par <b>Titan_gp1</b></div>
+</div>
+
+<div class="scene" aria-hidden="true">
+  <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><span class="blob b4"></span>
+  <svg class="deco" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+    <path d="M-60 560 H1260" stroke="var(--lane0)"/>
+    <path d="M220 560 C 330 560 330 330 450 330 H 760 C 880 330 880 560 990 560" stroke="var(--lane1)"/>
+    <path d="M560 330 C 640 330 640 150 740 150 H 1260" stroke="var(--lane2)"/>
+    <circle cx="120" cy="560" r="30" fill="var(--lane0)"/><circle cx="220" cy="560" r="30" fill="var(--lane0)"/>
+    <circle cx="450" cy="330" r="30" fill="var(--lane1)"/><circle cx="600" cy="330" r="30" fill="var(--lane1)"/>
+    <circle cx="760" cy="330" r="30" fill="var(--lane1)"/><circle cx="640" cy="560" r="30" fill="var(--lane0)"/>
+    <circle cx="990" cy="560" r="38" fill="var(--lane0)"/><circle cx="880" cy="150" r="30" fill="var(--lane2)"/>
+    <circle cx="1060" cy="150" r="30" fill="var(--lane2)"/>
+  </svg>
+</div>
+
+<div class="page">
+  <header class="topbar glass" data-refract="12">
+    <a class="brand" href="index.html" aria-label="Atelier Git, accueil">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><circle cx="6" cy="18" r="2.6"/><circle cx="6" cy="6" r="2.6"/><circle cx="18" cy="9" r="2.6"/><path d="M6 8.6v6.8M18 11.6c0 4-6 3-11 5"/></svg>
+      </span>
+      <span><b>Atelier Git <span class="ver" title="Version de l'application">v2.3.0</span></b><small>Apprendre Git en tapant de vraies commandes</small></span>
+    </a>
+    <nav class="site-nav" aria-label="Pages du site">
+      <a href="index.html">Accueil</a>
+      <a href="atelier.html">Atelier</a>
+      <a href="defis.html">Défis</a>
+      <a href="classement.html">Classement</a>
+      <a href="github.html" aria-current="page">Tuto GitHub</a>
+      <a href="aide-memoire.html">Aide-mémoire</a>
+      <a href="a-propos.html">À propos</a>
+    </nav>
+    <div class="top-actions">
+      <a class="gbtn acct" id="acctBtn" href="compte.html" title="Créer un compte ou se connecter"><span class="acct-av" aria-hidden="true"></span><span class="acct-name">Se connecter</span></a>
+      <div class="xp" title="Points gagnés en terminant les leçons"><span id="xp">0</span><small>XP</small></div>
+      <button class="gbtn fxbtn" id="btnFx" type="button" title="Régler les effets visuels : le verre demande beaucoup de calcul"><span class="fxdot" aria-hidden="true"></span><span id="fxLabel">Effets : équilibrés</span></button>
+      <button class="gbtn icon" id="btnTheme" type="button" aria-label="Changer de thème" title="Changer de thème">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor"/></svg>
+      </button>
+    </div>
+  </header>
+<main class="page-main gh" style="display:grid;gap:18px">
+  <section class="glass section-pad">
+    <p class="eyebrow">Tutoriel · pour de vrai</p>
+    <h1 class="title">Mettre son projet sur GitHub</h1>
+    <div class="about-text">
+      <p>Dans l'atelier, GitHub est simulé. Ici, vous allez le faire pour de vrai : créer un compte, installer Git, relier un dossier de votre ordinateur à un dépôt GitHub, puis y déposer vos fichiers à chaque commit.</p>
+      <p>Comptez 15 minutes la première fois. Ensuite, publier ne prend que trois commandes.</p>
+    </div>
+    <div class="gh-perso">
+      <label>Votre pseudo GitHub<input id="ghUser" data-allow-paste autocomplete="off" spellcheck="false" placeholder="pseudo" maxlength="39"></label>
+      <label>Nom du dépôt<input id="ghRepo" data-allow-paste autocomplete="off" spellcheck="false" placeholder="mon-site" maxlength="100"></label>
+      <p class="muted">Remplissez ces deux cases : toutes les commandes de la page s'adaptent. Rien n'est envoyé ni enregistré.</p>
+    </div>
+    <nav class="gh-toc" aria-label="Étapes du tutoriel">
+      <a href="#s1">1. Compte</a><a href="#s2">2. Installer Git</a><a href="#s3">3. Se présenter</a><a href="#s4">4. Créer le dépôt</a><a href="#s5">5. Relier et envoyer</a><a href="#s6">6. Se connecter</a><a href="#s7">7. Au quotidien</a><a href="#s8">8. Sans terminal</a><a href="#s9">9. Erreurs fréquentes</a><a href="#s10">10. Bonus : un site en ligne</a>
+    </nav>
+  </section>
+
+  <section class="glass section-pad gh-step" id="s1">
+    <h2 class="title"><span class="gh-n">1</span>Créer un compte GitHub</h2>
+    <div class="about-text">
+      <p>Allez sur <a href="https://github.com/signup" target="_blank" rel="noopener">github.com/signup</a>, choisissez un pseudo, un email et un mot de passe, puis confirmez l'email reçu.</p>
+      <p>Activez ensuite la double authentification dans <b>Settings → Password and authentication</b> : GitHub la demande à tous ceux qui publient du code.</p>
+    </div>
+  </section>
+
+  <section class="glass section-pad gh-step" id="s2">
+    <h2 class="title"><span class="gh-n">2</span>Installer Git</h2>
+    <div class="seg gh-os" role="tablist" aria-label="Votre système">
+      <button type="button" role="tab" data-os="win" aria-selected="true">Windows</button><button type="button" role="tab" data-os="mac" aria-selected="false">macOS</button><button type="button" role="tab" data-os="linux" aria-selected="false">Linux</button>
+    </div>
+    <div class="about-text" data-os-panel="win">
+      <p>Téléchargez <b>Git for Windows</b> sur <a href="https://git-scm.com/downloads/win" target="_blank" rel="noopener">git-scm.com/downloads/win</a> et installez-le en gardant les options par défaut. Il installe aussi <b>Git Bash</b>, un terminal, et le <b>Git Credential Manager</b>, qui gérera la connexion à GitHub à votre place.</p>
+    </div>
+    <div class="about-text" data-os-panel="mac" hidden>
+      <p>Ouvrez l'app Terminal et tapez <code>git --version</code>. Si Git manque, macOS propose d'installer les outils de développement : acceptez. Avec Homebrew, <code>brew install git</code> marche aussi.</p>
+    </div>
+    <div class="about-text" data-os-panel="linux" hidden>
+      <p>Avec le gestionnaire de paquets de votre distribution, par exemple <code>sudo apt install git</code> sur Ubuntu ou Debian, ou <code>sudo dnf install git</code> sur Fedora.</p>
+    </div>
+    <p class="muted">Vérifiez ensuite dans un terminal :</p>
+    <pre class="gh-cmd"><code>git --version</code></pre>
+  </section>
+
+  <section class="glass section-pad gh-step" id="s3">
+    <h2 class="title"><span class="gh-n">3</span>Se présenter à Git</h2>
+    <div class="about-text"><p>Une seule fois par ordinateur. Utilisez l'email de votre compte GitHub, ou l'adresse anonyme que GitHub vous donne dans <b>Settings → Emails</b> si vous ne voulez pas que votre email soit public.</p></div>
+    <pre class="gh-cmd"><code>git config --global user.name "<span data-gh="user">pseudo</span>"
+git config --global user.email "vous@exemple.fr"
+git config --global init.defaultBranch main</code></pre>
+    <p class="muted">La dernière ligne nomme <code>main</code> la branche de départ, comme sur GitHub. C'est la leçon <a href="atelier.html#config">Configurer Git</a> de l'atelier.</p>
+  </section>
+
+  <section class="glass section-pad gh-step" id="s4">
+    <h2 class="title"><span class="gh-n">4</span>Créer le dépôt sur GitHub</h2>
+    <div class="about-text">
+      <p>Sur GitHub, cliquez sur <b>+</b> en haut à droite, puis <b>New repository</b>. Donnez-lui le nom <b><span data-gh="repo">mon-site</span></b>, choisissez <b>Public</b> ou <b>Private</b>, et cliquez sur <b>Create repository</b>.</p>
+      <p class="note">Si votre projet existe déjà sur votre ordinateur, ne cochez <b>pas</b> « Add a README » : un dépôt vide évite un conflit au premier envoi.</p>
+      <p>GitHub affiche alors l'adresse du dépôt :</p>
+    </div>
+    <pre class="gh-cmd"><code>https://github.com/<span data-gh="user">pseudo</span>/<span data-gh="repo">mon-site</span>.git</code></pre>
+  </section>
+
+  <section class="glass section-pad gh-step" id="s5">
+    <h2 class="title"><span class="gh-n">5</span>Relier votre dossier et envoyer les fichiers</h2>
+    <div class="about-text"><p>Ouvrez un terminal <b>dans le dossier de votre projet</b> (sous Windows : clic droit dans le dossier → <b>Open Git Bash here</b>), puis :</p></div>
+    <pre class="gh-cmd"><code><span class="c"># 1. Transformer le dossier en dépôt Git</span>
+git init
+<span class="c"># 2. Préparer tous les fichiers et faire le premier commit</span>
+git add .
+git commit -m "Premier commit"
+<span class="c"># 3. S'assurer que la branche s'appelle main</span>
+git branch -M main
+<span class="c"># 4. Déclarer le dépôt GitHub sous le nom origin</span>
+git remote add origin https://github.com/<span data-gh="user">pseudo</span>/<span data-gh="repo">mon-site</span>.git
+<span class="c"># 5. Envoyer, et retenir le lien pour la suite</span>
+git push -u origin main</code></pre>
+    <p class="muted">Au premier <code>git push</code>, une connexion à GitHub vous est demandée : c'est l'étape suivante. Rechargez ensuite la page du dépôt sur GitHub : vos fichiers y sont. Entraînez-vous avant avec la leçon <a href="atelier.html#github">Publier sur GitHub</a>.</p>
+    <div class="about-text"><p><b>Le projet existe déjà sur GitHub ?</b> Récupérez-le plutôt avec <code>git clone</code> : le lien avec origin est déjà fait.</p></div>
+    <pre class="gh-cmd"><code>git clone https://github.com/<span data-gh="user">pseudo</span>/<span data-gh="repo">mon-site</span>.git
+cd <span data-gh="repo">mon-site</span></code></pre>
+  </section>
+
+  <section class="glass section-pad gh-step" id="s6">
+    <h2 class="title"><span class="gh-n">6</span>Se connecter à GitHub depuis le terminal</h2>
+    <div class="about-text">
+      <p>GitHub <b>refuse votre mot de passe</b> dans le terminal. Choisissez une de ces trois méthodes.</p>
+    </div>
+    <div class="gh-ways">
+      <div class="gh-way"><h3>Le navigateur <small>le plus simple sous Windows</small></h3><p>Avec Git for Windows, le Git Credential Manager ouvre une fenêtre au premier <code>git push</code>. Choisissez <b>Sign in with your browser</b>, autorisez, c'est fini : la connexion est mémorisée.</p></div>
+      <div class="gh-way"><h3>GitHub CLI <small>Windows, macOS, Linux</small></h3><p>Installez <a href="https://cli.github.com" target="_blank" rel="noopener">GitHub CLI</a>, puis lancez la commande ci-dessous et suivez les questions : choisissez HTTPS, puis la connexion par navigateur.</p><pre class="gh-cmd"><code>gh auth login</code></pre></div>
+      <div class="gh-way"><h3>Un jeton personnel <small>partout</small></h3><p>Sur GitHub : <b>Settings → Developer settings → Personal access tokens</b>. Créez un jeton avec l'accès <b>Contents : Read and write</b> sur votre dépôt. Quand le terminal demande un mot de passe, collez ce jeton. Gardez-le secret comme un mot de passe.</p></div>
+    </div>
+    <details class="gh-more"><summary>Utiliser une clé SSH à la place</summary>
+      <div class="about-text"><p>Créez une clé, puis copiez le contenu du fichier <code>.pub</code> dans <b>Settings → SSH and GPG keys → New SSH key</b>.</p></div>
+      <pre class="gh-cmd"><code>ssh-keygen -t ed25519 -C "vous@exemple.fr"
+cat ~/.ssh/id_ed25519.pub
+<span class="c"># Une fois la clé ajoutée sur GitHub :</span>
+ssh -T git@github.com
+git remote set-url origin git@github.com:<span data-gh="user">pseudo</span>/<span data-gh="repo">mon-site</span>.git</code></pre>
+    </details>
+  </section>
+
+  <section class="glass section-pad gh-step" id="s7">
+    <h2 class="title"><span class="gh-n">7</span>Au quotidien : modifier, commiter, envoyer</h2>
+    <div class="about-text"><p>Une fois le lien fait, chaque séance de travail suit le même cycle :</p></div>
+    <pre class="gh-cmd"><code><span class="c"># Récupérer ce qui a changé sur GitHub (autre ordinateur, collègue…)</span>
+git pull
+<span class="c"># … vous modifiez vos fichiers …</span>
+git status
+git add .
+git commit -m "Décrit ce que vous avez changé"
+git push</code></pre>
+    <p class="muted">Pour une nouvelle fonctionnalité, travaillez sur une branche : <code>git switch -c ma-branche</code>, puis <code>git push -u origin ma-branche</code>. GitHub propose alors d'ouvrir une <b>pull request</b> pour la fusionner dans main.</p>
+  </section>
+
+  <section class="glass section-pad gh-step" id="s8">
+    <h2 class="title"><span class="gh-n">8</span>Déposer des fichiers sans terminal</h2>
+    <div class="about-text">
+      <p><b>Depuis le site :</b> sur la page du dépôt, <b>Add file → Upload files</b>, glissez vos fichiers, écrivez un message en bas, puis <b>Commit changes</b>. Chaque dépôt de fichiers crée un vrai commit.</p>
+      <p><b>Avec une application :</b> <a href="https://desktop.github.com" target="_blank" rel="noopener">GitHub Desktop</a> fait add, commit, push et pull avec des boutons. Pratique, mais connaître les commandes reste utile quand quelque chose coince.</p>
+    </div>
+  </section>
+
+  <section class="glass section-pad gh-step" id="s9">
+    <h2 class="title"><span class="gh-n">9</span>Erreurs fréquentes</h2>
+    <div class="gh-errs">
+      <details class="gh-more"><summary><code>Support for password authentication was removed</code></summary><div class="about-text"><p>Vous avez tapé le mot de passe du compte. Utilisez une des méthodes de l'étape 6 : navigateur, <code>gh auth login</code> ou jeton.</p></div></details>
+      <details class="gh-more"><summary><code>! [rejected] main -> main (fetch first)</code></summary><div class="about-text"><p>GitHub a des commits que vous n'avez pas. Récupérez-les en rejouant vos commits par-dessus, puis renvoyez. C'est le défi <a href="defis.html">Course contre Léa</a>.</p></div><pre class="gh-cmd"><code>git pull --rebase
+git push</code></pre></details>
+      <details class="gh-more"><summary><code>error: src refspec main does not match any</code></summary><div class="about-text"><p>Il n'y a encore aucun commit, ou votre branche s'appelle <code>master</code>. Faites un commit, puis renommez la branche.</p></div><pre class="gh-cmd"><code>git branch -M main
+git push -u origin main</code></pre></details>
+      <details class="gh-more"><summary><code>error: remote origin already exists</code></summary><div class="about-text"><p>Un origin est déjà déclaré. Changez son adresse au lieu d'en ajouter un.</p></div><pre class="gh-cmd"><code>git remote set-url origin https://github.com/<span data-gh="user">pseudo</span>/<span data-gh="repo">mon-site</span>.git</code></pre></details>
+      <details class="gh-more"><summary><code>fatal: refusing to merge unrelated histories</code></summary><div class="about-text"><p>Le dépôt GitHub a été créé avec un README alors que votre projet avait déjà des commits. Réunissez les deux histoires une fois :</p></div><pre class="gh-cmd"><code>git pull origin main --allow-unrelated-histories
+git push -u origin main</code></pre></details>
+      <details class="gh-more"><summary>J'ai envoyé un mot de passe ou une clé par erreur</summary><div class="about-text"><p>Changez ce mot de passe ou révoquez cette clé <b>tout de suite</b> : le supprimer dans un nouveau commit ne suffit pas, il reste dans l'historique. Ajoutez ensuite le fichier au <code>.gitignore</code>, comme dans le défi <a href="defis.html">Fuite de clé</a>.</p></div></details>
+    </div>
+  </section>
+
+  <section class="glass section-pad gh-step" id="s10">
+    <h2 class="title"><span class="gh-n">10</span>Bonus : mettre un site en ligne gratuitement</h2>
+    <div class="about-text">
+      <p>Si votre dépôt contient un <code>index.html</code>, GitHub Pages peut le publier. Dans le dépôt : <b>Settings → Pages</b>, source <b>Deploy from a branch</b>, branche <b>main</b>, dossier <b>/ (root)</b>, puis <b>Save</b>.</p>
+      <p>Une à deux minutes plus tard, votre site est en ligne, et chaque <code>git push</code> le met à jour :</p>
+    </div>
+    <pre class="gh-cmd"><code>https://<span data-gh="userlow">pseudo</span>.github.io/<span data-gh="repo">mon-site</span>/</code></pre>
+    <p class="muted">C'est exactement comme ça que l'Atelier Git est publié.</p>
+  </section>
+</main>
+  <footer class="credit">
+    <span>Atelier Git <span class="ver">v2.3.0</span></span>
+    <span aria-hidden="true">·</span>
+    <span>Réalisé par <b>Titan_gp1</b></span>
+    <span aria-hidden="true">·</span>
+    <span><a href="https://github.com/Titangp1/atelier-git" target="_blank" rel="noopener">Code source sur GitHub</a></span>
+    <span aria-hidden="true" data-players-sep hidden>·</span>
+    <span data-players hidden></span>
+  </footer>
+</div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<script src="assets/config.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/pages.js"></script>
+</body>
+</html>

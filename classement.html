@@ -18,7 +18,7 @@
 <meta property="og:locale" content="fr_FR">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#e8492b">
-<script>(function(){try{var d=document.documentElement,t=localStorage.getItem('atelier-git-theme');if(t)d.dataset.theme=t;var f=localStorage.getItem('atelier-git-fx');if(f==='lite'||f==='max')d.classList.add('fx-'+f);if(sessionStorage.getItem('atelier-git-splash'))d.classList.add('no-splash')}catch(e){}})();</script>
+<script>(function(){try{var d=document.documentElement,t=localStorage.getItem('atelier-git-theme');if(t)d.dataset.theme=t;var f=localStorage.getItem('atelier-git-fx');if(f==='lite'||f==='max')d.classList.add('fx-'+f);if(sessionStorage.getItem('atelier-git-splash'))d.classList.add('no-splash');var o=JSON.parse(localStorage.getItem('atelier-git-opts')||'{}')||{};if(o.nosplash)d.classList.add('no-splash');if(o.calm)d.classList.add('calm');if(o.big)d.classList.add('big-text');if(o.nohints)d.classList.add('no-hints');if(o.term)d.dataset.term=o.term}catch(e){}})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
@@ -42,7 +42,7 @@
     <div class="splash-bar"><i id="splashBar"></i></div>
     <div class="splash-status" id="splashStatus">$ git init</div>
   </div>
-  <div class="splash-foot"><span class="ver">v2.2.0</span> · Réalisé par <b>Titan_gp1</b></div>
+  <div class="splash-foot"><span class="ver">v2.3.0</span> · Réalisé par <b>Titan_gp1</b></div>
 </div>
 
 <div class="scene" aria-hidden="true">
@@ -65,13 +65,14 @@
       <span class="brand-mark" aria-hidden="true">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><circle cx="6" cy="18" r="2.6"/><circle cx="6" cy="6" r="2.6"/><circle cx="18" cy="9" r="2.6"/><path d="M6 8.6v6.8M18 11.6c0 4-6 3-11 5"/></svg>
       </span>
-      <span><b>Atelier Git <span class="ver" title="Version de l'application">v2.2.0</span></b><small>Apprendre Git en tapant de vraies commandes</small></span>
+      <span><b>Atelier Git <span class="ver" title="Version de l'application">v2.3.0</span></b><small>Apprendre Git en tapant de vraies commandes</small></span>
     </a>
     <nav class="site-nav" aria-label="Pages du site">
       <a href="index.html">Accueil</a>
       <a href="atelier.html">Atelier</a>
       <a href="defis.html">Défis</a>
       <a href="classement.html" aria-current="page">Classement</a>
+      <a href="github.html">Tuto GitHub</a>
       <a href="aide-memoire.html">Aide-mémoire</a>
       <a href="a-propos.html">À propos</a>
     </nav>
@@ -102,7 +103,7 @@
   </section>
 </main>
   <footer class="credit">
-    <span>Atelier Git <span class="ver">v2.2.0</span></span>
+    <span>Atelier Git <span class="ver">v2.3.0</span></span>
     <span aria-hidden="true">·</span>
     <span>Réalisé par <b>Titan_gp1</b></span>
     <span aria-hidden="true">·</span>

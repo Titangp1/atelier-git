@@ -4,7 +4,7 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const has=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
-const SERVER_URL='https://github.com/equipe/site.git';
+const SERVER_URL='https://github.com/equipe/site.git',GH_URL='https://github.com/vous/mon-site.git';
 const APP_VERSION=Site.APP_VERSION;
 const toast=(a,b,c)=>Site.toast(a,b,c);
 
@@ -585,6 +585,23 @@ const LESSONS=[
   {t:'Placez le fichier dans l\'index, la zone de préparation',cmd:'git add index.html',ok:()=>S.repo.index['index.html']!==undefined||!!headId()},
   {t:'Prenez la photo : votre premier commit',cmd:'git commit -m "Ajoute la page d\'accueil"',ok:()=>!!headId()},
  ]},
+{id:'config',title:'Configurer Git',short:'config · alias',level:'Débutant',xp:50,
+ summary:'Présentez-vous à Git et créez vos propres raccourcis de commandes.',
+ theory:`<p>Chaque commit porte un <b>nom</b> et un <b>email</b>. Git les lit dans sa configuration : réglez-les une fois pour toutes avec <code>git config --global</code>.</p>
+ <p>Mettez le même email que sur votre compte GitHub : vos commits seront alors reliés à votre profil.</p>
+ <p>Un <b>alias</b> est un raccourci. Avec <code>git config --global alias.st status</code>, taper <code>git st</code> revient à taper <code>git status</code>.</p>
+ <p class="note">--global écrit dans votre profil et vaut pour tous vos dépôts. Sans cette option, le réglage ne vaut que pour le dépôt courant.</p>`,
+ setup:['git init'],prep(){delete S.config['user.name'];delete S.config['user.email']},
+ intro:'Dépôt vide. Git ne sait pas encore qui vous êtes.',
+ tasks:[
+  {t:'Donnez votre nom à Git',cmd:'git config --global user.name "Camille"',ok:()=>!!S.config['user.name']},
+  {t:'Donnez-lui votre email',cmd:'git config --global user.email "camille@exemple.fr"',ok:()=>!!S.config['user.email']},
+  {t:'Affichez toute la configuration',cmd:'git config --list',ok:c=>c.ran(/^git config (--list|-l)/)},
+  {t:'Créez l\'alias <code>st</code> pour <code>status</code>',cmd:'git config --global alias.st status',ok:()=>S.config['alias.st']==='status'},
+  {t:'Essayez votre raccourci',cmd:'git st',ok:c=>c.ran(/^git st$/)},
+  {t:'Créez l\'alias <code>lg</code> pour un historique compact de toutes les branches',cmd:'git config --global alias.lg "log --oneline --all"',ok:()=>/^log\b.*--oneline/.test(S.config['alias.lg']||'')},
+  {t:'Faites un premier commit : il portera votre nom',cmd:'echo "# Mon site" > README.md && git add . && git commit -m "Premier commit"',ok:()=>!!headId()},
+ ]},
 {id:'zones',title:'Les trois zones',short:'status · diff · add',level:'Débutant',xp:50,
  summary:'Comprenez le trajet d\'une modification : répertoire de travail, index, puis dépôt.',
  theory:`<p>Chaque fichier vit à trois endroits. Le <b>répertoire de travail</b> est ce que vous éditez. L'<b>index</b> prépare le prochain commit. Le <b>dépôt</b> garde les commits pour toujours.</p>
@@ -599,6 +616,23 @@ const LESSONS=[
   {t:'Commitez la feuille de style. La modification de index.html reste en attente.',cmd:'git commit -m "Ajoute la feuille de style"',ok:()=>HT('style.css')!==undefined},
   {t:'Commitez le reste en une commande avec <code>-am</code>',cmd:'git commit -am "Ajoute un message de bienvenue"',ok:()=>{const c=changes();return !c.staged.length&&!c.unstaged.length&&ancestors(headId()).size>=3}},
  ]},
+{id:'fichiers',title:'Renommer et supprimer',short:'mv · rm · rm --cached',level:'Débutant',xp:50,
+ summary:'Rangez votre projet sans perdre l\'historique de vos fichiers.',
+ theory:`<p>Renommer un fichier à la main, c'est pour Git une suppression suivie d'un nouveau fichier. <code>git mv ancien nouveau</code> fait les deux d'un coup et les indexe.</p>
+ <p><code>git rm fichier</code> supprime le fichier du disque et indexe la suppression.</p>
+ <p><code>git rm --cached fichier</code> arrête seulement de le <b>suivre</b> : il reste sur votre disque mais sortira du prochain commit. C'est le geste à faire quand un fichier de mots de passe a été commité par erreur.</p>
+ <p class="note">Le fichier reste dans les anciens commits. Si c'était un vrai mot de passe déjà poussé, changez-le.</p>`,
+ setup:['git init','echo "<h1>Accueil</h1>" > page.html','echo "à supprimer" > vieux.txt','echo "MOT_DE_PASSE=1234" > config.env','git add .','git commit -m "Premier jet"'],
+ intro:'Dépôt prêt : page.html est mal nommé, vieux.txt ne sert plus et config.env n\'aurait jamais dû être commité.',
+ tasks:[
+  {t:'Renommez <code>page.html</code> en <code>accueil.html</code>',cmd:'git mv page.html accueil.html',ok:()=>W('accueil.html')!==undefined&&W('page.html')===undefined},
+  {t:'Regardez comment Git présente ce renommage',cmd:'git status',ok:c=>c.ran(/^git (status|st)\b/)},
+  {t:'Supprimez <code>vieux.txt</code>',cmd:'git rm vieux.txt',ok:()=>W('vieux.txt')===undefined},
+  {t:'Arrêtez de suivre <code>config.env</code> sans l\'effacer du disque',cmd:'git rm --cached config.env',ok:()=>W('config.env')!==undefined&&(S.repo.index['config.env']===undefined||HT('config.env')===undefined)},
+  {t:'Enregistrez ce rangement',cmd:'git commit -m "Range les fichiers"',ok:()=>HT('accueil.html')!==undefined&&HT('page.html')===undefined&&HT('vieux.txt')===undefined&&HT('config.env')===undefined},
+  {t:'Faites ignorer <code>config.env</code> pour la suite',cmd:'echo "config.env" > .gitignore',ok:()=>isIgnored('config.env')},
+  {t:'Commitez le <code>.gitignore</code>',cmd:'git add .gitignore && git commit -m "Ignore la configuration locale"',ok:()=>HT('.gitignore')!==undefined},
+ ]},
 {id:'historique',title:'Voyager dans l\'historique',short:'log · restore · reset',level:'Débutant',xp:50,
  summary:'Lisez l\'historique, annulez une modification et revenez en arrière.',
  theory:`<p>Chaque commit a un identifiant unique, son <b>hash</b> (ici 7 caractères comme <code>a3f9c21</code>). <code>HEAD</code> désigne le commit où vous êtes. <code>HEAD~1</code> est son parent, <code>HEAD~2</code> le grand-parent.</p>
@@ -612,6 +646,21 @@ const LESSONS=[
   {t:'Annulez ce dégât avec <code>git restore</code>',cmd:'git restore index.html',ok:c=>c.ran(/^git (restore|checkout)/)&&W('index.html')===HT('index.html')},
   {t:'Supprimez le commit « promo » en reculant d\'un cran',cmd:'git reset --hard HEAD~1',ok:()=>ancestors(headId()).size===2},
   {t:'Vérifiez le résultat : le commit a disparu de main',cmd:'git log --oneline',ok:c=>c.ran(/^git (log|show)/)},
+ ]},
+{id:'versions',title:'Versions et annulation',short:'tag · show · revert',level:'Intermédiaire',xp:50,
+ summary:'Marquez vos versions publiées et annulez un commit sans réécrire l\'historique.',
+ theory:`<p>Une <b>étiquette</b> (tag) est un nom fixe posé sur un commit, comme <code>v1.0</code>. Contrairement à une branche, elle ne bouge jamais.</p>
+ <p><code>git tag v1.0</code> étiquette le commit actuel ; <code>git tag v1.0 HEAD~1</code> étiquette un commit plus ancien. <code>git show v1.0</code> affiche ce commit.</p>
+ <p><code>git revert</code> annule un commit en en créant un nouveau qui fait l'inverse. L'historique est conservé : c'est la bonne façon d'annuler un commit déjà partagé.</p>`,
+ setup:['git init','echo "<h1>Accueil</h1>" > index.html','git add .','git commit -m "Ajoute l\'accueil"','echo "h1 { color: navy; }" > style.css','git add .','git commit -m "Ajoute le style"','echo "<nav>Menu cassé</nav>" > menu.html','git add .','git commit -m "Ajoute un menu cassé"'],
+ intro:'Dépôt prêt : 3 commits. Le dernier a cassé le site.',
+ tasks:[
+  {t:'Affichez l\'historique compact',cmd:'git log --oneline',ok:c=>c.ran(/^git (log|lg)\b/)},
+  {t:'La dernière version stable est l\'avant-dernier commit. Étiquetez-le <code>v1.0</code>',cmd:'git tag v1.0 HEAD~1',ok:()=>{const t=S.repo.tags['v1.0'];return !!t&&C(t).msg==='Ajoute le style'}},
+  {t:'Listez les étiquettes',cmd:'git tag',ok:c=>c.ran(/^git tag$/)},
+  {t:'Affichez le commit de la version 1.0',cmd:'git show v1.0',ok:c=>c.ran(/^git show\b.*v1\.0/)},
+  {t:'Annulez le commit cassé sans réécrire l\'historique',cmd:'git revert HEAD',ok:()=>HT('menu.html')===undefined&&/^Revert/.test(C(headId()).msg)},
+  {t:'Le site remarche : étiquetez cette version <code>v1.1</code>',cmd:'git tag v1.1',ok:()=>S.repo.tags['v1.1']===headId()},
  ]},
 {id:'branches',title:'Les branches',short:'branch · switch',level:'Intermédiaire',xp:50,
  summary:'Travaillez sur une nouvelle fonctionnalité sans toucher à la branche principale.',
@@ -674,6 +723,24 @@ const LESSONS=[
   {t:'Poussez main et liez-la au serveur avec <code>-u</code>',cmd:'git push -u origin main',ok:()=>{const s=S.servers[S.repo.remotes.origin];return s&&!!s.branches.main&&S.repo.upstream.main==='origin'}},
   {t:'Attendez le message de Léa, puis récupérez son travail sans fusionner. Regardez <code>origin/main</code> avancer.',cmd:'git fetch',ok:()=>{const s=S.servers[SERVER_URL];return S.flags.lea&&S.repo.tracking['origin/main']===s.branches.main&&C(s.branches.main).author==='Léa'}},
   {t:'Intégrez ses commits dans votre main',cmd:'git pull',ok:()=>{const s=S.servers[SERVER_URL];return S.flags.lea&&B('main')===s.branches.main}},
+ ]},
+{id:'github',title:'Publier sur GitHub',short:'remote · push -u · tags',level:'Avancé',xp:60,
+ summary:'Reliez votre dépôt à un dépôt GitHub vide et publiez votre travail et vos versions.',
+ theory:`<p>Sur GitHub, un nouveau dépôt vide affiche son adresse, par exemple <code>https://github.com/vous/mon-site.git</code>. Il suffit de la déclarer sous le nom <code>origin</code>.</p>
+ <p>Le premier envoi d'une branche se fait avec <code>git push -u origin main</code>. Le <code>-u</code> retient le lien : ensuite, un simple <code>git push</code> suffit.</p>
+ <p>Les étiquettes ne partent pas toutes seules : envoyez-les avec <code>git push --tags</code>.</p>
+ <p class="note">Ici GitHub est simulé. La page Tuto GitHub explique comment le faire pour de vrai, compte et connexion compris.</p>`,
+ setup:['git init','echo "# Mon site" > README.md','git add .','git commit -m "Premier commit"','echo "<h1>Accueil</h1>" > index.html','git add .','git commit -m "Ajoute l\'accueil"'],
+ prep(){S.servers[GH_URL]={branches:{}}},
+ intro:'Dépôt prêt : 2 commits. Un dépôt GitHub vide vous attend à l\'adresse '+GH_URL,
+ tasks:[
+  {t:'Reliez votre dépôt à GitHub sous le nom <code>origin</code>',cmd:`git remote add origin ${GH_URL}`,ok:()=>S.repo.remotes.origin===GH_URL},
+  {t:'Vérifiez l\'adresse enregistrée',cmd:'git remote -v',ok:c=>c.ran(/^git remote -v/)},
+  {t:'Envoyez <code>main</code> et retenez le lien',cmd:'git push -u origin main',ok:()=>S.servers[GH_URL].branches.main===B('main')&&S.repo.upstream.main==='origin'},
+  {t:'Modifiez la page d\'accueil et commitez',cmd:'echo "<h1>Bienvenue</h1>" > index.html && git commit -am "Change le titre"',ok:()=>!!headId()&&ancestors(headId()).size>=3},
+  {t:'Envoyez ce commit avec un simple push',cmd:'git push',ok:()=>S.servers[GH_URL].branches.main===B('main')&&ancestors(B('main')).size>=3},
+  {t:'Étiquetez cette version <code>v1.0</code>',cmd:'git tag v1.0',ok:()=>!!S.repo.tags['v1.0']},
+  {t:'Publiez l\'étiquette sur GitHub',cmd:'git push --tags',ok:()=>!!(S.servers[GH_URL].tags||{})['v1.0']},
  ]},
 {id:'stash',title:'Mettre de côté',short:'stash',level:'Avancé',xp:50,
  summary:'Une urgence tombe en plein travail. Rangez vos changements, corrigez, puis reprenez.',
@@ -857,6 +924,63 @@ const CHALLENGES=[
   {t:'<code>index.html</code> n\'a plus de <code>&lt;/h11&gt;</code>',ok:()=>HT('index.html')!==undefined&&!HT('index.html').includes('</h11>')},
   {t:'Un commit d\'annulation existe',ok:()=>!!headId()&&[...ancestors(headId())].some(id=>/^Revert/.test(C(id).msg))},
   {t:'Les commits existants sont tous conservés',ok:()=>!!headId()&&headId()!==CH.orig&&isAnc(CH.orig,headId())}]},
+{id:'d-renommer',
+ brief:'Le fichier page.html devrait s\'appeler accueil.html. Renommez-le de façon à ce que Git le sache, et enregistrez ce changement. À la fin, le répertoire de travail doit être propre.',
+ hint:'Git a sa propre commande pour déplacer ou renommer un fichier : elle prépare tout dans l\'index.',
+ setup:['git init','echo "<h1>Accueil</h1>" > page.html','git add .','git commit -m "Premier jet"'],
+ intro:'1 commit. page.html est mal nommé.',
+ goals:[
+  {t:'<code>accueil.html</code> est dans le dernier commit',ok:()=>HT('accueil.html')==='<h1>Accueil</h1>'},
+  {t:'<code>page.html</code> n\'y est plus',ok:()=>!!headId()&&HT('page.html')===undefined},
+  {t:'Le répertoire de travail est propre',ok:isClean}]},
+{id:'d-alias',
+ brief:'Vous tapez git status cent fois par jour. Créez l\'alias st pour status, et l\'alias lg qui affiche l\'historique compact (--oneline) de toutes les branches (--all).',
+ hint:'git config accepte des clés de la forme alias.nom. Mettez la valeur entre guillemets si elle contient des espaces.',
+ setup:['git init','echo "# Site" > README.md','git add .','git commit -m "Premier commit"'],
+ intro:'Un dépôt tout simple. Aucun alias pour l\'instant.',
+ goals:[
+  {t:'<code>git st</code> lance <code>git status</code>',ok:()=>S.config['alias.st']==='status'},
+  {t:'<code>git lg</code> lance un <code>git log</code>',ok:()=>/^log\b/.test(S.config['alias.lg']||'')},
+  {t:'… compact et sur toutes les branches',ok:()=>{const v=S.config['alias.lg']||'';return /--oneline/.test(v)&&/--all/.test(v)}}]},
+{id:'d-fuite',
+ brief:'config.env, qui contient une clé secrète, a été commité. Faites en sorte que Git ne le suive plus, ni maintenant ni plus tard, sans le supprimer de votre disque. Enregistrez le tout : le répertoire de travail doit être propre.',
+ hint:'git rm a une option qui retire un fichier de l\'index sans toucher au disque. Ensuite, un .gitignore commité.',
+ setup:['git init','echo "<h1>Accueil</h1>" > index.html','echo "CLE=abc123" > config.env','git add .','git commit -m "Premier jet"'],
+ intro:'config.env est dans le dernier commit.',
+ goals:[
+  {t:'<code>config.env</code> n\'est plus dans le dernier commit',ok:()=>!!headId()&&HT('config.env')===undefined&&HT('index.html')!==undefined},
+  {t:'Il est toujours sur le disque',ok:()=>W('config.env')!==undefined},
+  {t:'Il est ignoré, et la règle est commitée',ok:()=>!!S.repo&&isIgnored('config.env')&&HT('.gitignore')!==undefined},
+  {t:'Le répertoire de travail est propre',ok:isClean}]},
+{id:'d-urgence',
+ brief:'Vous êtes en train de modifier index.html quand on vous signale une faute : contact.html affiche « Contcat ». Corrigez-la dans un commit sur une nouvelle branche correctif. Votre travail en cours sur index.html ne doit être dans aucun commit, mais il doit rester sur votre disque.',
+ hint:'git stash range votre travail en cours ; git stash pop le ressort quand l\'urgence est réglée.',
+ setup:['git init','echo "<h1>Accueil</h1>" > index.html','echo "<h1>Contcat</h1>" > contact.html','git add .','git commit -m "Premier jet"','echo "<h1>Accueil</h1>\\n<p>Travail en cours</p>" > index.html'],
+ intro:'index.html est modifié, pas encore commité.',
+ goals:[
+  {t:'La branche <code>correctif</code> corrige le titre',ok:()=>{const b=B('correctif'),t=b&&C(b).tree['contact.html']||'';return /Contact/.test(t)&&!/Contcat/.test(t)}},
+  {t:'Aucun commit ne contient le travail en cours',ok:()=>!!S.repo&&Object.values(S.repo.branches).every(id=>[...ancestors(id)].every(c=>!/Travail en cours/.test(C(c).tree['index.html']||'')))},
+  {t:'Le travail en cours est toujours sur le disque',ok:()=>/Travail en cours/.test(W('index.html')||'')}]},
+{id:'d-publier',
+ brief:'Votre projet n\'existe que sur votre ordinateur. Publiez-le sur le dépôt GitHub vide https://github.com/vous/mon-site.git : la branche main, la branche blog, et l\'étiquette v1.0 posée sur le dernier commit de main.',
+ hint:'Déclarez le dépôt distant, poussez chaque branche, puis les étiquettes : elles ne partent pas toutes seules.',
+ setup:['git init','echo "# Mon site" > README.md','git add .','git commit -m "Premier commit"','echo "<h1>Accueil</h1>" > index.html','git add .','git commit -m "Ajoute l\'accueil"','git switch -c blog','echo "<h1>Blog</h1>" > blog.html','git add .','git commit -m "Commence le blog"','git switch main'],
+ prep(){S.servers[GH_URL]={branches:{}}},
+ intro:'2 branches locales, aucun dépôt distant.',
+ goals:[
+  {t:'<code>main</code> est sur GitHub',ok:()=>{const s=S.servers[GH_URL];return !!s&&!!B('main')&&s.branches.main===B('main')}},
+  {t:'<code>blog</code> est sur GitHub',ok:()=>{const s=S.servers[GH_URL];return !!s&&!!B('blog')&&s.branches.blog===B('blog')}},
+  {t:'L\'étiquette <code>v1.0</code> est sur GitHub, sur le dernier commit de main',ok:()=>{const s=S.servers[GH_URL],t=s&&(s.tags||{})['v1.0'];return !!t&&t===B('main')}}]},
+{id:'d-ligne-droite',
+ brief:'La branche menu a deux commits, mais main a avancé depuis. Intégrez le menu dans main avec un historique parfaitement linéaire : aucun commit de fusion, les deux commits du menu conservés, et à la fin menu et main pointent sur le même commit.',
+ hint:'Rejouez menu au-dessus de main, puis avancez main jusqu\'à menu : la fusion sera une simple avance rapide.',
+ setup:['git init','echo "<h1>Accueil</h1>" > index.html','git add .','git commit -m "Ajoute l\'accueil"','git switch -c menu','echo "<nav>Menu</nav>" > menu.html','git add .','git commit -m "Ajoute le menu"','echo "nav { display: flex; }" > menu.css','git add .','git commit -m "Stylise le menu"','git switch main','echo "<footer>© 2026</footer>" > footer.html','git add .','git commit -m "Ajoute le pied de page"','echo "h1 { color: teal; }" > style.css','git add .','git commit -m "Ajoute le style"'],
+ intro:'main et menu ont chacune 2 commits que l\'autre n\'a pas.',
+ goals:[
+  {t:'<code>main</code> contient le menu et le pied de page',ok:()=>{const m=B('main');return !!m&&C(m).tree['menu.css']!==undefined&&C(m).tree['footer.html']!==undefined}},
+  {t:'Les deux commits du menu sont conservés',ok:()=>{const m=B('main');if(!m)return false;const msgs=[...ancestors(m)].map(id=>C(id).msg);return msgs.includes('Ajoute le menu')&&msgs.includes('Stylise le menu')}},
+  {t:'Aucun commit de fusion',ok:()=>{const m=B('main');return !!m&&[...ancestors(m)].every(id=>C(id).parents.length<2)}},
+  {t:'<code>menu</code> et <code>main</code> pointent sur le même commit',ok:()=>!!B('main')&&B('menu')===B('main')}]},
 ];
 CHALLENGES.forEach(c=>{const m=Site.CHALLENGES_META.find(x=>x.id===c.id);Object.assign(c,m,{kind:'defi',tasks:[],level:DIFF[m.diff].label,summary:c.brief,theory:''})});
 LESSONS.push(...CHALLENGES);

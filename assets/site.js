@@ -3,24 +3,30 @@
 'use strict';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const APP_VERSION='2.2.0';
+const APP_VERSION='2.3.0';
 
 /* Liste des leçons pour l'accueil (générée depuis atelier.js au moment de la construction). */
-const LESSONS_META=[{"id": "premier", "title": "Votre premier dépôt", "short": "init · add · commit", "level": "Débutant", "xp": 50}, {"id": "zones", "title": "Les trois zones", "short": "status · diff · add", "level": "Débutant", "xp": 50}, {"id": "historique", "title": "Voyager dans l'historique", "short": "log · restore · reset", "level": "Débutant", "xp": 50}, {"id": "branches", "title": "Les branches", "short": "branch · switch", "level": "Intermédiaire", "xp": 50}, {"id": "fusion", "title": "Fusionner des branches", "short": "merge", "level": "Intermédiaire", "xp": 50}, {"id": "conflit", "title": "Résoudre un conflit", "short": "merge · conflit", "level": "Intermédiaire", "xp": 60}, {"id": "distant", "title": "Travailler à plusieurs", "short": "remote · push · pull", "level": "Avancé", "xp": 60}, {"id": "stash", "title": "Mettre de côté", "short": "stash", "level": "Avancé", "xp": 50}, {"id": "rebase", "title": "Un historique linéaire", "short": "rebase", "level": "Avancé", "xp": 60}, {"id": "enquete", "title": "Ignorer et enquêter", "short": ".gitignore · blame", "level": "Intermédiaire", "xp": 50}, {"id": "reparer", "title": "Réparer ses erreurs", "short": "amend · reflog · cherry-pick", "level": "Avancé", "xp": 60}, {"id": "bac", "title": "Bac à sable", "short": "libre", "level": "Libre", "xp": 0}];
+const LESSONS_META=[{"id": "premier", "title": "Votre premier dépôt", "short": "init · add · commit", "level": "Débutant", "xp": 50}, {"id": "config", "title": "Configurer Git", "short": "config · alias", "level": "Débutant", "xp": 50}, {"id": "zones", "title": "Les trois zones", "short": "status · diff · add", "level": "Débutant", "xp": 50}, {"id": "fichiers", "title": "Renommer et supprimer", "short": "mv · rm · rm --cached", "level": "Débutant", "xp": 50}, {"id": "historique", "title": "Voyager dans l'historique", "short": "log · restore · reset", "level": "Débutant", "xp": 50}, {"id": "versions", "title": "Versions et annulation", "short": "tag · show · revert", "level": "Intermédiaire", "xp": 50}, {"id": "branches", "title": "Les branches", "short": "branch · switch", "level": "Intermédiaire", "xp": 50}, {"id": "fusion", "title": "Fusionner des branches", "short": "merge", "level": "Intermédiaire", "xp": 50}, {"id": "conflit", "title": "Résoudre un conflit", "short": "merge · conflit", "level": "Intermédiaire", "xp": 60}, {"id": "distant", "title": "Travailler à plusieurs", "short": "remote · push · pull", "level": "Avancé", "xp": 60}, {"id": "github", "title": "Publier sur GitHub", "short": "remote · push -u · tags", "level": "Avancé", "xp": 60}, {"id": "stash", "title": "Mettre de côté", "short": "stash", "level": "Avancé", "xp": 50}, {"id": "rebase", "title": "Un historique linéaire", "short": "rebase", "level": "Avancé", "xp": 60}, {"id": "enquete", "title": "Ignorer et enquêter", "short": ".gitignore · blame", "level": "Intermédiaire", "xp": 50}, {"id": "reparer", "title": "Réparer ses erreurs", "short": "amend · reflog · cherry-pick", "level": "Avancé", "xp": 60}, {"id": "bac", "title": "Bac à sable", "short": "libre", "level": "Libre", "xp": 0}];
 
 /* Défis : identifiants, titres, difficulté et XP. Doit rester aligné sur firebase/firestore.rules. */
 const CHALLENGES_META=[
  {id:'d-premier-pas',title:'Premier pas',short:'Créer un dépôt propre en partant de rien',diff:'facile',xp:30},
  {id:'d-oups',title:'Oups, pas ce fichier',short:'Retirer un fichier secret de l\'index',diff:'facile',xp:30},
  {id:'d-version',title:'Version 1.0',short:'Étiqueter le bon commit',diff:'facile',xp:30},
+ {id:'d-renommer',title:'Mauvais nom',short:'Renommer un fichier proprement',diff:'facile',xp:30},
+ {id:'d-alias',title:'Raccourcis',short:'Créer ses propres commandes',diff:'facile',xp:30},
  {id:'d-menage',title:'Grand ménage',short:'Faire ignorer les fichiers inutiles',diff:'moyen',xp:60},
  {id:'d-sauvetage',title:'Sauvetage de branche',short:'Ressusciter une branche supprimée',diff:'moyen',xp:60},
  {id:'d-squash',title:'Une seule histoire',short:'Trois brouillons, un seul commit',diff:'moyen',xp:60},
+ {id:'d-fuite',title:'Fuite de clé',short:'Ne plus suivre un fichier secret',diff:'moyen',xp:60},
+ {id:'d-urgence',title:'Urgence en plein travail',short:'Corriger sans commiter son brouillon',diff:'moyen',xp:60},
  {id:'d-double-conflit',title:'Double conflit',short:'Deux fichiers en conflit à résoudre',diff:'difficile',xp:100},
  {id:'d-bon-commit',title:'Le bon commit',short:'Récupérer une seule correction',diff:'difficile',xp:100},
  {id:'d-amend',title:'Message honteux',short:'Réparer le dernier commit sans en ajouter',diff:'difficile',xp:100},
+ {id:'d-publier',title:'Mise en ligne',short:'Publier branches et version sur GitHub',diff:'difficile',xp:100},
  {id:'d-course',title:'Course contre Léa',short:'Publier sans commit de fusion',diff:'expert',xp:150},
  {id:'d-enquete',title:'Qui a cassé le site ?',short:'Trouver et annuler le commit coupable',diff:'expert',xp:150},
+ {id:'d-ligne-droite',title:'Ligne droite',short:'Intégrer une branche sans fusion',diff:'expert',xp:150},
 ];
 const DIFFS={facile:{label:'Facile',n:1},moyen:{label:'Moyen',n:2},difficile:{label:'Difficile',n:3},expert:{label:'Expert',n:4}};
 
@@ -57,7 +63,7 @@ const forget=()=>{try{sessionStorage.removeItem('atelier-git-progress');sessionS
 function readProgress(){let P={done:{},xp:0,ch:{}};try{const raw=sessionStorage.getItem('atelier-git-progress');if(raw)P=Object.assign(P,JSON.parse(raw))}catch(e){}P.ch=P.ch||{};return P}
 
 /* ----- Animations partagées ----- */
-const reduceMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reduceMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches||document.documentElement.classList.contains('calm');
 /* Fait défiler un nombre jusqu'à sa valeur. */
 function countUp(el,to,dur=1100,from=0){if(!el)return;el.textContent=to; /* la valeur finale d'abord : visible même si l'animation ne tourne pas */
   if(reduceMotion()||document.hidden||from===to)return;
@@ -69,7 +75,7 @@ function showXp(n){const el=$('#xp');if(!el)return;if(shownXp===null||n<=shownXp
   const from=shownXp;shownXp=n;countUp(el,n,900,from);if(reduceMotion())return;
   const box=el.closest('.xp');if(box){const p=document.createElement('span');p.className='xp-pop';p.textContent='+'+(n-from);box.appendChild(p);setTimeout(()=>p.remove(),1300)}}
 /* Pluie de confettis aux couleurs du graphe, pour une leçon ou un défi réussi. */
-function celebrate(){if(reduceMotion()||document.hidden)return;
+function celebrate(){if(reduceMotion()||document.hidden||document.documentElement.classList.contains('no-confetti'))return;
   const cv=document.createElement('canvas'),dpr=Math.min(2,devicePixelRatio||1),W=innerWidth,H=innerHeight;cv.className='confetti';cv.width=W*dpr;cv.height=H*dpr;cv.setAttribute('aria-hidden','true');document.body.appendChild(cv);
   const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);const cs=getComputedStyle(document.documentElement);
   const cols=['--lane0','--lane1','--lane2','--lane3','--lane4'].map(v=>cs.getPropertyValue(v).trim()||'#e8492b');
@@ -349,5 +355,37 @@ Account.init();
     document.querySelectorAll('[data-players-count]').forEach(el=>{el.dataset.count=n;countUp(el,n,1200);const l=el.nextElementSibling;if(l)l.textContent=n>1?'joueurs inscrits':'joueur inscrit'})}).catch(()=>{})})})();
 setTimeout(reveal,0);
 
+/* ----- Options d'affichage : gardées dans ce navigateur (ce ne sont pas des données de progression). ----- */
+const OPTS_KEY='atelier-git-opts';
+let OPTS={};try{OPTS=JSON.parse(localStorage.getItem(OPTS_KEY)||'{}')||{}}catch(e){}
+function applyOpts(){const h=document.documentElement;
+  h.classList.toggle('calm',!!OPTS.calm);h.classList.toggle('no-hints',!!OPTS.nohints);h.classList.toggle('big-text',!!OPTS.big);
+  h.classList.toggle('no-confetti',!!OPTS.noconfetti);if(OPTS.term)h.dataset.term=OPTS.term;else delete h.dataset.term}
+function setOpt(k,v){if(v)OPTS[k]=v;else delete OPTS[k];try{localStorage.setItem(OPTS_KEY,JSON.stringify(OPTS))}catch(e){}applyOpts()}
+applyOpts();
+const OPT_DEFS=[
+ {k:'term',label:'Taille du terminal',choices:[['','Normale'],['l','Grande'],['xl','Très grande']]},
+ {k:'big',label:'Texte du site',choices:[['','Normal'],['1','Agrandi']]},
+ {k:'calm',label:'Animations',choices:[['','Activées'],['1','Réduites']]},
+ {k:'noconfetti',label:'Confettis de victoire',choices:[['','Oui'],['1','Non']]},
+ {k:'nohints',label:'Boutons d\'indice',choices:[['','Affichés'],['1','Masqués']],help:'Masqués : le mode expert, sans aucune aide.'},
+ {k:'nosplash',label:'Écran de chargement',choices:[['','Affiché'],['1','Masqué']]},
+];
+function openOpts(){let ov=$('#optsOv');if(ov)ov.remove();ov=document.createElement('div');ov.className='overlay';ov.id='optsOv';
+  ov.innerHTML=`<div class="modal glass opts" role="dialog" aria-modal="true" aria-labelledby="optsT"><h3 id="optsT">Options</h3>
+    <p class="muted">Réglages d'affichage, gardés dans ce navigateur. Votre progression, elle, n'est enregistrée que sur votre compte.</p>
+    <div class="opt-list">${OPT_DEFS.map(d=>`<div class="opt-row"><span class="opt-l" id="ol-${d.k}">${d.label}${d.help?`<small>${d.help}</small>`:''}</span>
+      <div class="seg" role="radiogroup" aria-labelledby="ol-${d.k}">${d.choices.map(([v,t])=>`<button type="button" role="radio" data-k="${d.k}" data-v="${v}" aria-checked="${(OPTS[d.k]||'')===v}">${t}</button>`).join('')}</div></div>`).join('')}</div>
+    <div class="row"><button class="gbtn" type="button" id="optsReset">Tout remettre par défaut</button><button class="gbtn primary" type="button" id="optsClose">Fermer</button></div></div>`;
+  document.body.appendChild(ov);document.body.classList.add('modal-open');
+  const close=()=>{ov.remove();document.body.classList.remove('modal-open');document.removeEventListener('keydown',onKey);const b=$('#btnOpts');if(b)b.focus()};
+  const onKey=e=>{if(e.key==='Escape')close()};document.addEventListener('keydown',onKey);
+  ov.addEventListener('click',e=>{if(e.target===ov)return close();const b=e.target.closest('[data-k]');if(!b)return;setOpt(b.dataset.k,b.dataset.v);
+    ov.querySelectorAll(`[data-k="${b.dataset.k}"]`).forEach(x=>x.setAttribute('aria-checked',String(x===b)))});
+  $('#optsClose').onclick=close;$('#optsReset').onclick=()=>{OPT_DEFS.forEach(d=>setOpt(d.k,''));ov.querySelectorAll('[data-k]').forEach(x=>x.setAttribute('aria-checked',String(x.dataset.v==='')));toast('Options','Tout est revenu aux réglages par défaut.')};
+  $('#optsClose').focus()}
+{const th=$('#btnTheme');if(th){const b=document.createElement('button');b.className='gbtn icon';b.id='btnOpts';b.type='button';b.title='Options';b.setAttribute('aria-label','Options');
+  b.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></svg>';
+  th.before(b);b.onclick=openOpts}}
 window.Site={APP_VERSION,LESSONS_META,CHALLENGES_META,DIFFS,CHEAT,REFS,toast,esc,readProgress,renderCheat,Refract,setFx,account:Account,celebrate,countUp,showXp,reveal};
 })();
