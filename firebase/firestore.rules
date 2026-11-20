@@ -11,7 +11,7 @@ rules_version = '2';
 // Ce que ces règles garantissent, à chaque écriture :
 //   * chacun ne crée, ne modifie et ne supprime que son propre profil ;
 //   * les XP valent exactement la somme des leçons (50, ou 60 pour les avancées) et des défis
-//     (30, 60, 100 ou 150 selon la difficulté) : impossible d'écrire un score arbitraire, 2100 XP au maximum ;
+//     (30, 60, 100 ou 150 selon la difficulté) : impossible d'écrire un score arbitraire, 2250 XP au maximum ;
 //   * les listes de leçons et de défis ne contiennent que des éléments réels, sans doublon, et ne peuvent que grandir ;
 //   * un pseudo n'appartient qu'à un seul compte ;
 //   * le classement est lisible par tous ; aucun email n'est stocké dans Firestore.
@@ -20,8 +20,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function lessonIds() {
-      return ['premier', 'config', 'zones', 'fichiers', 'historique', 'versions', 'branches', 'fusion',
-              'conflit', 'distant', 'github', 'stash', 'rebase', 'enquete', 'reparer'];
+      return ['premier', 'config', 'zones', 'fichiers', 'historique', 'versions', 'comparer', 'annuler',
+              'branches', 'detache', 'fusion', 'conflit', 'distant', 'github', 'stash', 'rebase',
+              'enquete', 'reparer'];
     }
     // Leçons à 60 XP ; toutes les autres valent 50 XP.
     function bonusIds() {
@@ -50,7 +51,7 @@ service cloud.firestore {
     function validProgress(d) {
       let ch = d.get('challenges', []);
       return d.done is list
-        && d.done.size() <= 15
+        && d.done.size() <= 18
         && d.done.hasOnly(lessonIds())
         && d.done.toSet().size() == d.done.size()
         && d.lessonsDone == d.done.size()

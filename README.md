@@ -8,8 +8,8 @@
 
 <p>
 <a href="https://titangp1.github.io/atelier-git/"><img src="https://img.shields.io/badge/Essayer_en_ligne-e8492b?style=flat-square&logo=githubpages&logoColor=white" alt="Essayer en ligne"></a>
-<img src="https://img.shields.io/badge/version-2.3.0-1f2937?style=flat-square" alt="Version 2.3.0">
-<img src="https://img.shields.io/badge/le%C3%A7ons-15-1f2937?style=flat-square" alt="15 leçons">
+<img src="https://img.shields.io/badge/version-2.4.0-1f2937?style=flat-square" alt="Version 2.4.0">
+<img src="https://img.shields.io/badge/le%C3%A7ons-18-1f2937?style=flat-square" alt="18 leçons">
 <img src="https://img.shields.io/badge/d%C3%A9fis-17-1f2937?style=flat-square" alt="17 défis">
 <img src="https://img.shields.io/badge/installation-aucune-1f2937?style=flat-square" alt="Aucune installation">
 </p>
@@ -49,7 +49,7 @@ Atelier Git simule un dépôt, un terminal et un serveur distant dans le navigat
 
 | Fonction | Détail |
 |:--|:--|
-| **15 leçons** | Une explication courte, puis des missions qui se valident toutes seules. |
+| **18 leçons** | Une explication courte, puis des missions qui se valident toutes seules. |
 | **17 défis** | Un dépôt préparé, un objectif, aucune commande imposée. De 30 à 150 XP. |
 | **Tuto GitHub** | Pour de vrai : compte, installation, connexion, premier `push`, erreurs fréquentes. |
 | **Terminal simulé** | Les vrais messages de Git, avec des astuces en français. |
@@ -89,15 +89,18 @@ Atelier Git simule un dépôt, un terminal et un serveur distant dans le navigat
 | 4 | Renommer et supprimer | `mv` `rm` `rm --cached` | Débutant | 50 |
 | 5 | Voyager dans l'historique | `log` `restore` `reset` | Débutant | 50 |
 | 6 | Versions et annulation | `tag` `show` `revert` | Intermédiaire | 50 |
-| 7 | Les branches | `branch` `switch` | Intermédiaire | 50 |
-| 8 | Fusionner des branches | `merge` | Intermédiaire | 50 |
-| 9 | Résoudre un conflit | `merge` conflit | Intermédiaire | 60 |
-| 10 | Travailler à plusieurs | `remote` `push` `pull` | Avancé | 60 |
-| 11 | Publier sur GitHub | `remote` `push -u` `--tags` | Avancé | 60 |
-| 12 | Mettre de côté | `stash` | Avancé | 50 |
-| 13 | Un historique linéaire | `rebase` | Avancé | 60 |
-| 14 | Ignorer et enquêter | `.gitignore` `blame` | Intermédiaire | 50 |
-| 15 | Réparer ses erreurs | `amend` `reflog` `cherry-pick` | Avancé | 60 |
+| 7 | Comparer des versions | `diff` `show --stat` | Intermédiaire | 50 |
+| 8 | Annuler sans paniquer | `restore` `reset --soft` `revert` | Intermédiaire | 50 |
+| 9 | Les branches | `branch` `switch` | Intermédiaire | 50 |
+| 10 | Explorer le passé | `switch --detach` | Intermédiaire | 50 |
+| 11 | Fusionner des branches | `merge` | Intermédiaire | 50 |
+| 12 | Résoudre un conflit | `merge` conflit | Intermédiaire | 60 |
+| 13 | Travailler à plusieurs | `remote` `push` `pull` | Avancé | 60 |
+| 14 | Publier sur GitHub | `remote` `push -u` `--tags` | Avancé | 60 |
+| 15 | Mettre de côté | `stash` | Avancé | 50 |
+| 16 | Un historique linéaire | `rebase` | Avancé | 60 |
+| 17 | Ignorer et enquêter | `.gitignore` `blame` | Intermédiaire | 50 |
+| 18 | Réparer ses erreurs | `amend` `reflog` `cherry-pick` | Avancé | 60 |
 
 Plus un **bac à sable** pour tout essayer librement.
 
@@ -110,7 +113,7 @@ Plus un **bac à sable** pour tout essayer librement.
 | Difficile | 100 | Double conflit · Le bon commit · Message honteux · Mise en ligne |
 | Expert | 150 | Course contre Léa · Qui a cassé le site ? · Ligne droite |
 
-Au total : **800 XP** de leçons + **1 300 XP** de défis = **2 100 XP**.
+Au total : **950 XP** de leçons + **1 300 XP** de défis = **2 250 XP**.
 
 ## Les pages
 
@@ -181,7 +184,8 @@ Les modes interactifs (`git add -p`, `git rebase -i`) ne sont pas simulés : l'a
 
 | Version | Nouveautés |
 |:--|:--|
-| **2.3.0** | Page Tuto GitHub · 4 leçons · 6 défis · panneau Options · pastilles de couleur dans les zones |
+| **2.4.0** | 3 leçons : Comparer des versions, Annuler sans paniquer, Explorer le passé · barre du haut sur une ligne · rendu plus léger |
+| 2.3.0 | Page Tuto GitHub · 4 leçons · 6 défis · panneau Options · pastilles de couleur dans les zones |
 | 2.2.0 | 11 défis · nombre de joueurs · animations · progression gardée uniquement sur le compte |
 | 2.1.0 | Comptes (email et Google) · classement · XP vérifiés par le serveur |
 | 2.0.0 | Site en plusieurs pages · plus aucune commande insérée automatiquement |
@@ -199,4 +203,4 @@ Conçu et réalisé par **Titan_gp1**.
 - Aide-mémoire organisé d'après celui de [git-scm.com](https://git-scm.com/cheat-sheet).
 - Polices : Bricolage Grotesque, Figtree et JetBrains Mono (Google Fonts).
 
-<div align="center"><sub>Atelier Git · v2.3.0 · Titan_gp1</sub></div>
+<div align="center"><sub>Atelier Git · v2.4.0 · Titan_gp1</sub></div>

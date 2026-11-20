@@ -662,6 +662,37 @@ const LESSONS=[
   {t:'Annulez le commit cassé sans réécrire l\'historique',cmd:'git revert HEAD',ok:()=>HT('menu.html')===undefined&&/^Revert/.test(C(headId()).msg)},
   {t:'Le site remarche : étiquetez cette version <code>v1.1</code>',cmd:'git tag v1.1',ok:()=>S.repo.tags['v1.1']===headId()},
  ]},
+{id:'comparer',title:'Comparer des versions',short:'diff · show --stat',level:'Intermédiaire',xp:50,
+ summary:'Voyez exactement ce qui a changé entre deux commits, deux branches ou deux zones.',
+ theory:`<p><code>git diff</code> compare. Sans argument, il montre ce qui n'est pas encore indexé ; avec <code>--staged</code>, ce qui partira au prochain commit.</p>
+ <p>Avec deux commits, <code>git diff HEAD~2 HEAD</code> montre tout ce qui a changé entre eux. Avec deux branches, <code>git diff main contact</code> montre ce que contact apporterait.</p>
+ <p><code>git show commit --stat</code> résume un commit : quels fichiers, combien de lignes.</p>`,
+ setup:['git init','echo "<h1>Accueil</h1>" > index.html','git add .','git commit -m "Ajoute l\'accueil"','echo "h1 { color: navy; }" > style.css','git add .','git commit -m "Ajoute le style"','git switch -c contact','echo "<h1>Contact</h1>" > contact.html','git add .','git commit -m "Ajoute le contact"','git switch main','echo "<h1>Bienvenue</h1>" > index.html'],
+ intro:'Dépôt prêt : 2 commits sur main, 1 sur contact. index.html est modifié.',
+ tasks:[
+  {t:'Voyez la modification pas encore indexée',cmd:'git diff',ok:c=>c.ran(/^git diff$/)},
+  {t:'Indexez-la, puis comparez l\'index au dernier commit',cmd:'git add index.html && git diff --staged',ok:c=>c.ran(/^git diff (--staged|--cached)/)},
+  {t:'Commitez-la',cmd:'git commit -m "Change le titre"',ok:()=>/Bienvenue/.test(HT('index.html')||'')},
+  {t:'Comparez le premier commit au dernier',cmd:'git diff HEAD~2 HEAD',ok:c=>c.ran(/^git diff \S+ \S+/)},
+  {t:'Voyez ce que la branche <code>contact</code> apporterait',cmd:'git diff main contact',ok:c=>c.ran(/^git diff\b.*contact/)},
+  {t:'Résumez le dernier commit',cmd:'git show HEAD --stat',ok:c=>c.ran(/^git show\b.*--stat/)},
+ ]},
+{id:'annuler',title:'Annuler sans paniquer',short:'restore · reset --soft · revert',level:'Intermédiaire',xp:50,
+ summary:'Choisissez le bon outil pour annuler : un fichier, un index, un commit local ou un commit partagé.',
+ theory:`<p>Tout dépend de <b>ce que</b> vous annulez :</p>
+ <p><code>git restore fichier</code> jette les modifications non indexées. <code>git restore --staged fichier</code> retire un fichier de l'index sans toucher au disque.</p>
+ <p><code>git reset --soft HEAD~1</code> défait le dernier commit mais garde tout dans l'index : idéal pour refaire un commit. Seulement sur des commits pas encore poussés.</p>
+ <p><code>git revert commit</code> annule n'importe quel commit, même ancien, en ajoutant un commit inverse. C'est le seul outil sûr pour un commit déjà partagé.</p>`,
+ setup:['git init','echo "<h1>Accueil</h1>" > index.html','git add .','git commit -m "Ajoute l\'accueil"','echo "<p>Promo -50%</p>" > promo.html','git add .','git commit -m "Ajoute la promo"','echo "h1 { color: navy; }" > style.css','git add .','git commit -m "Ajoute le style"','echo "<h1>Oups</h1>" > index.html','echo "brouillon" > notes.txt','git add notes.txt'],
+ intro:'3 commits. index.html est abîmé et notes.txt est indexé par erreur.',
+ tasks:[
+  {t:'Jetez la modification ratée de <code>index.html</code>',cmd:'git restore index.html',ok:()=>W('index.html')==='<h1>Accueil</h1>'},
+  {t:'Retirez <code>notes.txt</code> de l\'index sans l\'effacer',cmd:'git restore --staged notes.txt',ok:()=>S.repo.index['notes.txt']===undefined&&W('notes.txt')!==undefined},
+  {t:'Défaites le dernier commit en gardant son contenu indexé',cmd:'git reset --soft HEAD~1',ok:()=>C(headId()).msg==='Ajoute la promo'&&S.repo.index['style.css']!==undefined},
+  {t:'Refaites-le avec un meilleur message',cmd:'git commit -m "Ajoute la feuille de style"',ok:()=>C(headId()).msg!=='Ajoute la promo'&&HT('style.css')!==undefined},
+  {t:'La promo est terminée. Annulez ce commit ancien, déjà partagé',cmd:'git revert HEAD~1',ok:()=>HT('promo.html')===undefined&&/^Revert/.test(C(headId()).msg)&&HT('style.css')!==undefined},
+  {t:'Vérifiez : l\'historique a gardé la promo et son annulation',cmd:'git log --oneline',ok:c=>c.ran(/^git (log|lg)\b/)},
+ ]},
 {id:'branches',title:'Les branches',short:'branch · switch',level:'Intermédiaire',xp:50,
  summary:'Travaillez sur une nouvelle fonctionnalité sans toucher à la branche principale.',
  theory:`<p>Une branche est une <b>étiquette mobile</b> posée sur un commit. Créer une branche ne copie rien : Git ajoute juste une étiquette.</p>
@@ -675,6 +706,21 @@ const LESSONS=[
   {t:'Basculez dessus. Le libellé HEAD se déplace dans le graphe.',cmd:'git switch contact',ok:()=>curBranch()==='contact'},
   {t:'Créez <code>contact.html</code> et commitez-le sur cette branche',cmd:'echo "<h1>Contact</h1>" > contact.html && git add . && git commit -m "Ajoute la page contact"',ok:()=>B('contact')&&B('contact')!==B('main')&&isAnc(B('main'),B('contact'))},
   {t:'Revenez sur <code>main</code> et listez les fichiers : contact.html n\'y est pas',cmd:'git switch main && ls',ok:()=>curBranch()==='main'},
+ ]},
+{id:'detache',title:'Explorer le passé',short:'switch --detach · tête détachée',level:'Intermédiaire',xp:50,
+ summary:'Revenez voir un ancien état du projet, puis sauvez ce que vous y faites dans une branche.',
+ theory:`<p>Normalement, HEAD pointe sur une branche. Avec <code>git switch --detach commit</code>, HEAD pointe directement sur un commit : c'est la <b>tête détachée</b>. Vos fichiers redeviennent ceux de ce moment-là.</p>
+ <p>Vous pouvez y regarder, tester, et même commiter. Mais aucune branche ne retient ces commits : si vous repartez, ils se perdent.</p>
+ <p>Pour garder ce travail, créez une branche là où vous êtes : <code>git switch -c nom</code>. Pour simplement revenir, <code>git switch main</code>.</p>`,
+ setup:['git init','echo "<h1>Accueil</h1>" > index.html','git add .','git commit -m "Version 1"','echo "<h1>Accueil</h1>\\n<p>Menu</p>" > index.html','git commit -am "Version 2"','echo "<h1>Accueil</h1>\\n<p>Menu</p>\\n<p>Blog</p>" > index.html','git commit -am "Version 3"'],
+ intro:'3 commits sur main.',
+ tasks:[
+  {t:'Revenez à l\'état de la version 1',cmd:'git switch --detach HEAD~2',ok:()=>S.repo.head.type==='detached'&&C(headId()).msg==='Version 1'},
+  {t:'Regardez ce que dit Git',cmd:'git status',ok:c=>c.ran(/^git (status|st)\b/)},
+  {t:'Testez une idée : commitez une variante du titre',cmd:'echo "<h1>Accueil v1 bis</h1>" > index.html && git commit -am "Essai depuis la v1"',ok:()=>S.repo.head.type==='detached'&&C(headId()).msg!=='Version 1'},
+  {t:'L\'idée est bonne : sauvez-la dans une branche <code>essai-v1</code>',cmd:'git switch -c essai-v1',ok:()=>!!B('essai-v1')&&curBranch()==='essai-v1'&&C(B('essai-v1')).msg!=='Version 1'},
+  {t:'Retournez sur <code>main</code>',cmd:'git switch main',ok:()=>curBranch()==='main'},
+  {t:'Voyez les deux lignes dans l\'historique',cmd:'git log --oneline --all',ok:c=>c.ran(/^git (log\b.*--all|lg)/)},
  ]},
 {id:'fusion',title:'Fusionner des branches',short:'merge',level:'Intermédiaire',xp:50,
  summary:'Rapatriez le travail d\'une branche dans main, avec et sans commit de fusion.',
